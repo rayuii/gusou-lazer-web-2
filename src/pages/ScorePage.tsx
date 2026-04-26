@@ -125,6 +125,27 @@ const GradeLadder: React.FC<{ active: string; hasSilver?: boolean }> = ({ active
   );
 };
 
+// Mod background colors (matches osu! website)
+const MOD_COLORS: Record<string, string> = {
+  EZ: '#5cb85c', NF: '#5cb85c', HT: '#5cb85c', DC: '#5cb85c',
+  HR: '#d9534f', SD: '#d9534f', PF: '#d9534f', DT: '#d9534f',
+  NC: '#d9534f', HD: '#d9534f', FL: '#d9534f', AC: '#d9534f',
+  RX: '#428bca', AP: '#428bca', AT: '#428bca', CN: '#428bca',
+  MR: '#f0ad4e', RD: '#f0ad4e', AL: '#f0ad4e', SG: '#f0ad4e',
+  SO: '#f0ad4e',
+  CL: '#777', CS: '#777', AS: '#777',
+};
+
+// Mod background colors (matches osu! website)
+const MOD_COLORS: Record<string, string> = {
+  EZ: '#5cb85c', NF: '#5cb85c', HT: '#5cb85c', DC: '#5cb85c',
+  HR: '#d9534f', SD: '#d9534f', PF: '#d9534f', DT: '#d9534f',
+  NC: '#d9534f', HD: '#d9534f', FL: '#d9534f', AC: '#d9534f',
+  RX: '#428bca', AP: '#428bca', AT: '#428bca', CN: '#428bca',
+  MR: '#f0ad4e', RD: '#f0ad4e', AL: '#f0ad4e', SG: '#f0ad4e',
+  SO: '#f0ad4e', CL: '#777', CS: '#777', AS: '#777',
+};
+
 // Acronym → osu! mod SVG filename mapping
 const MOD_FILENAMES: Record<string, string> = {
   // Difficulty Reduction
@@ -191,32 +212,35 @@ const MOD_FILENAMES: Record<string, string> = {
 const ModIcon: React.FC<{ mod: any }> = ({ mod }) => {
   const acronym: string = mod?.acronym ?? mod ?? '??';
   const filename = MOD_FILENAMES[acronym];
+  const bg = MOD_COLORS[acronym] ?? '#555';
 
-  if (filename) {
-    return (
-      <img
-        src={`../image/mods/${filename}.svg`}
-        alt={acronym}
-        title={acronym}
-        style={{ height: 32, width: 'auto', objectFit: 'contain' }}
-        onError={(e) => {
-          // fall back to painted blank icon
-          (e.currentTarget as HTMLImageElement).src = 'image/mods/blanks/mod-icon.svg';
-          (e.currentTarget as HTMLImageElement).style.filter = 'hue-rotate(30deg) saturate(2)';
-        }}
-      />
-    );
-  }
-
-  // Unknown mod — blank icon with label overlay
   return (
-    <div style={{ position: 'relative', height: 32, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-      <img src="../image/mods/blanks/mod-icon.svg" alt={acronym} style={{ height: 32, width: 'auto', objectFit: 'contain' }} />
-      <span style={{
-        position: 'absolute', fontSize: 9, fontWeight: 900, color: '#fff',
-        letterSpacing: '0.02em', textAlign: 'center', lineHeight: 1,
-        textShadow: '0 1px 2px rgba(0,0,0,0.8)',
-      }}>{acronym}</span>
+    <div style={{ position: 'relative', width: 40, height: 40, flexShrink: 0 }} title={acronym}>
+      {/* color layer behind blank shape */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: bg,
+        WebkitMaskImage: 'url(../image/mods/blanks/mod-icon.svg)',
+        WebkitMaskSize: 'contain',
+        WebkitMaskRepeat: 'no-repeat',
+        WebkitMaskPosition: 'center',
+        maskImage: 'url(../image/mods/blanks/mod-icon.svg)',
+        maskSize: 'contain',
+        maskRepeat: 'no-repeat',
+        maskPosition: 'center',
+      }} />
+      {/* actual mod symbol on top */}
+      {filename && (
+        <img
+          src={`../image/mods/${filename}.svg`}
+          alt={acronym}
+          style={{
+            position: 'absolute', inset: 0, width: '100%', height: '100%',
+            objectFit: 'contain',
+          }}
+          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+        />
+      )}
     </div>
   );
 };
