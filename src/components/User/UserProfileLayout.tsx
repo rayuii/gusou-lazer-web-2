@@ -302,126 +302,133 @@ const UserProfileLayout: React.FC<UserProfileLayoutProps> = ({ user, selectedMod
           </div>
         </div>
 
-        <div className="bg-transparent md:bg-card px-3 md:px-8 py-4 md:py-6 flex items-center gap-4 md:gap-6 border-b border-card relative">
-          <div className={isCoverExpanded ? '-mt-12' : 'mt-0'}>
-            <Avatar
-              userId={user.id}
-              username={user.username}
-              avatarUrl={user.avatar_url}
-              size="xl"
-              shape="rounded"
-              editable={false}
-              className={
-                isCoverExpanded
-                  ? 'mt-[10px] md:mt-[1px] md:!w-32 md:!h-32 md:!min-w-32 md:!min-h-32 transition-all duration-300'
-                  : 'mt-[10px] md:mt-[1px] md:!w-24 md:!h-24 md:!min-w-24 md:!min-h-24 transition-all duration-300'
-              }
-              onAvatarUpdate={handleAvatarUpdate}
-            />
-          </div>
-          <div className="flex-1">
-            {/* Row 1: Username + group badges inline */}
-            <div className="flex items-center flex-wrap gap-2 mt-[-12px] md:mt-[-15px] ml-0 md:ml-[-10px] mb-1">
-              <h1 className="text-xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">
-                {user.username}
-              </h1>
-              {user.groups && user.groups.length > 0 && user.groups.map(group => (
-                <React.Fragment key={group.id}>
-                  <span
-                    className="text-[10px] font-bold px-1.5 py-0.5 rounded cursor-default"
-                    style={{
-                      backgroundColor: group.colour + '33',
-                      color: group.colour,
-                      border: `1px solid ${group.colour}66`,
-                    }}
-                    data-tooltip-id={`group-tooltip-${group.id}`}
-                    data-tooltip-content={group.name}
-                  >
-                    {group.short_name}
-                  </span>
-                  <Tooltip id={`group-tooltip-${group.id}`} />
-                </React.Fragment>
-              ))}
+        {/* Profile header: avatar + info + badges */}
+        <div className="bg-transparent md:bg-card px-3 md:px-8 py-4 md:py-6 flex flex-col gap-3 border-b border-card relative">
+
+          {/* Top row: avatar + username/country + toggle button */}
+          <div className="flex items-start gap-4 md:gap-6">
+            <div className={isCoverExpanded ? '-mt-12' : 'mt-0'}>
+              <Avatar
+                userId={user.id}
+                username={user.username}
+                avatarUrl={user.avatar_url}
+                size="xl"
+                shape="rounded"
+                editable={false}
+                className={
+                  isCoverExpanded
+                    ? 'mt-[10px] md:mt-[1px] md:!w-32 md:!h-32 md:!min-w-32 md:!min-h-32 transition-all duration-300'
+                    : 'mt-[10px] md:mt-[1px] md:!w-24 md:!h-24 md:!min-w-24 md:!min-h-24 transition-all duration-300'
+                }
+                onAvatarUpdate={handleAvatarUpdate}
+              />
             </div>
 
-            {/* Row 2: Title (if exists) */}
-            {user.title && (
-              <div className="text-sm font-medium mb-1 ml-0 md:ml-[-10px]" style={{ color: profileColor }}>
-                {user.title}
-              </div>
-            )}
-
-            {/* Row 3: Country + team */}
-            <div className="flex items-center gap-2 md:gap-4 ml-0 md:ml-[-8px] flex-wrap mb-2">
-              {user.country?.code && (
-                <div className="flex items-center gap-2">
-                  <img
-                    src={`/image/flag/${user.country.code.toLowerCase()}.svg`}
-                    alt={user.country.name}
-                    className="h-[20px] md:h-[25px] w-auto rounded-sm object-contain cursor-help"
-                    loading="lazy"
-                    decoding="async"
-                    data-tooltip-id="country-tooltip"
-                    data-tooltip-content={user.country?.name || ''}
-                  />
-                  <span className="text-gray-600 dark:text-gray-300 text-sm md:text-base">
-                    {user.country?.name}
-                  </span>
-                </div>
-              )}
-              {user.team && (
-                <div className="flex items-center gap-2">
-                  <img
-                    src={user.team.flag_url}
-                    alt="team flag"
-                    className="h-[20px] md:h-[25px] w-auto rounded-sm object-contain cursor-help"
-                    loading="lazy"
-                    decoding="async"
-                    data-tooltip-id="team-tooltip"
-                    data-tooltip-content={user.team.name}
-                  />
-                  <span className="text-gray-600 dark:text-gray-300 text-sm md:text-base">
-                    {user.team.name}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Row 4: Tournament badges */}
-            {user.badges && user.badges.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 ml-0 md:ml-[-8px]">
-                {user.badges.map((badge, i) => (
-                  <React.Fragment key={i}>
-                    <a
-                      href={badge.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      data-tooltip-id={`badge-tooltip-${i}`}
-                      data-tooltip-content={`${badge.description} • ${new Date(badge.awarded_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`}
+            <div className="flex-1">
+              {/* Username + group badges inline */}
+              <div className="flex items-center flex-wrap gap-2 mt-[-12px] md:mt-[-15px] ml-0 md:ml-[-10px] mb-1">
+                <h1 className="text-xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">
+                  {user.username}
+                </h1>
+                {user.groups && user.groups.length > 0 && user.groups.map(group => (
+                  <React.Fragment key={group.id}>
+                    <span
+                      className="text-[10px] font-bold px-1.5 py-0.5 rounded cursor-default"
+                      style={{
+                        backgroundColor: group.colour + '33',
+                        color: group.colour,
+                        border: `1px solid ${group.colour}66`,
+                      }}
+                      data-tooltip-id={`group-tooltip-${group.id}`}
+                      data-tooltip-content={group.name}
                     >
-                      <img
-                        src={badge['image@2x_url'] || badge.image_url}
-                        alt={badge.description}
-                        className="h-[34px] w-auto rounded object-contain hover:scale-110 transition-transform duration-150"
-                        loading="lazy"
-                        decoding="async"
-                      />
-                    </a>
-                    <Tooltip id={`badge-tooltip-${i}`} />
+                      {group.short_name}
+                    </span>
+                    <Tooltip id={`group-tooltip-${group.id}`} />
                   </React.Fragment>
                 ))}
               </div>
-            )}
+
+              {/* Title */}
+              {user.title && (
+                <div className="text-sm font-medium mb-1 ml-0 md:ml-[-10px]" style={{ color: profileColor }}>
+                  {user.title}
+                </div>
+              )}
+
+              {/* Country + team */}
+              <div className="flex items-center gap-2 md:gap-4 ml-0 md:ml-[-8px] flex-wrap">
+                {user.country?.code && (
+                  <div className="flex items-center gap-2">
+                    <img
+                      src={`/image/flag/${user.country.code.toLowerCase()}.svg`}
+                      alt={user.country.name}
+                      className="h-[20px] md:h-[25px] w-auto rounded-sm object-contain cursor-help"
+                      loading="lazy"
+                      decoding="async"
+                      data-tooltip-id="country-tooltip"
+                      data-tooltip-content={user.country?.name || ''}
+                    />
+                    <span className="text-gray-600 dark:text-gray-300 text-sm md:text-base">
+                      {user.country?.name}
+                    </span>
+                  </div>
+                )}
+                {user.team && (
+                  <div className="flex items-center gap-2">
+                    <img
+                      src={user.team.flag_url}
+                      alt="team flag"
+                      className="h-[20px] md:h-[25px] w-auto rounded-sm object-contain cursor-help"
+                      loading="lazy"
+                      decoding="async"
+                      data-tooltip-id="team-tooltip"
+                      data-tooltip-content={user.team.name}
+                    />
+                    <span className="text-gray-600 dark:text-gray-300 text-sm md:text-base">
+                      {user.team.name}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <button
+              onClick={handleToggleCover}
+              className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 grid place-items-center text-sm md:text-base hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors flex-shrink-0"
+              aria-label={isCoverExpanded ? t('profile.userPage.collapseCover') : t('profile.userPage.expandCover')}
+              data-tooltip-id="cover-toggle-tooltip"
+              data-tooltip-content={isCoverExpanded ? t('profile.userPage.collapseCover') : t('profile.userPage.expandCover')}
+            >
+              {isCoverExpanded ? <FaChevronUp /> : <FaChevronDown />}
+            </button>
           </div>
-          <button
-            onClick={handleToggleCover}
-            className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 grid place-items-center text-sm md:text-base hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors flex-shrink-0"
-            aria-label={isCoverExpanded ? t('profile.userPage.collapseCover') : t('profile.userPage.expandCover')}
-            data-tooltip-id="cover-toggle-tooltip"
-            data-tooltip-content={isCoverExpanded ? t('profile.userPage.collapseCover') : t('profile.userPage.expandCover')}
-          >
-            {isCoverExpanded ? <FaChevronUp /> : <FaChevronDown />}
-          </button>
+
+          {/* Badges row — full width below avatar row */}
+          {user.badges && user.badges.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {user.badges.map((badge, i) => (
+                <React.Fragment key={i}>
+                  <a
+                    href={badge.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-tooltip-id={`badge-tooltip-${i}`}
+                    data-tooltip-content={`${badge.description} • ${new Date(badge.awarded_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`}
+                  >
+                    <img
+                      src={badge['image@2x_url'] || badge.image_url}
+                      alt={badge.description}
+                      className="h-[34px] w-auto rounded object-contain hover:scale-110 transition-transform duration-150"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </a>
+                  <Tooltip id={`badge-tooltip-${i}`} />
+                </React.Fragment>
+              ))}
+            </div>
+          )}
         </div>
 
         <Tooltip id="country-tooltip" />
