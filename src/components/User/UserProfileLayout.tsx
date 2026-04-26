@@ -242,7 +242,6 @@ const UserProfileLayout: React.FC<UserProfileLayoutProps> = ({ user, selectedMod
               />
             </div>
             <div className="px-3 md:px-6 lg:px-8 py-4 border-b border-card">
-              <SectionHeader title="First Place Ranks" count={user.scores_first_count ?? 0} />
               <UserFirstScores userId={user.id} selectedMode={selectedMode} user={user} />
             </div>
           </div>
@@ -267,7 +266,6 @@ const UserProfileLayout: React.FC<UserProfileLayoutProps> = ({ user, selectedMod
       case 'beatmaps':
         return (
           <div key="beatmaps" className="px-3 md:px-6 lg:px-8 py-4 border-b border-card">
-            <SectionHeader title="Favourite Beatmaps" count={user.favourite_beatmapset_count ?? 0} />
             <UserFavouriteBeatmaps userId={user.id} user={user} />
           </div>
         );
