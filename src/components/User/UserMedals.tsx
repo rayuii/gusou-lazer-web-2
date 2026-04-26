@@ -7,7 +7,7 @@ interface Achievement {
 }
 
 interface MedalInfo {
-  id: number;
+  achievement_id: number;
   name: string;
   slug: string;
   description: string;
@@ -101,7 +101,7 @@ const UserMedals: React.FC<UserMedalsProps> = ({ userAchievements, className = '
     .slice(0, 8);
 
   const latestMedals = latestAchievements
-    .map(a => medals.find(m => m.id === a.achievement_id))
+    .map(a => medals.find(m => m.achievement_id === a.achievement_id))
     .filter((m): m is MedalInfo => m !== undefined);
 
   if (achievements.length === 0) {
@@ -126,10 +126,10 @@ const UserMedals: React.FC<UserMedalsProps> = ({ userAchievements, className = '
         <div className="flex flex-wrap gap-3">
           {latestMedals.map(medal => (
             <MedalIcon
-              key={medal.id}
+              key={medal.achievement_id}
               medal={medal}
               unlocked={true}
-              achievedAt={achievedAtMap.get(medal.id)}
+              achievedAt={achievedAtMap.get(medal.achievement_id)}
             />
           ))}
         </div>
@@ -140,12 +140,12 @@ const UserMedals: React.FC<UserMedalsProps> = ({ userAchievements, className = '
           All Unlocked ({achievements.length})
         </div>
         <div className="flex flex-wrap gap-3">
-          {medals.filter(m => unlockedIds.has(m.id)).map(medal => (
+          {medals.filter(m => unlockedIds.has(m.achievement_id)).map(medal => (
             <MedalIcon
-              key={medal.id}
+              key={medal.achievement_id}
               medal={medal}
               unlocked={true}
-              achievedAt={achievedAtMap.get(medal.id)}
+              achievedAt={achievedAtMap.get(medal.achievement_id)}
             />
           ))}
         </div>
