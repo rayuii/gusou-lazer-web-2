@@ -22,6 +22,7 @@ import MessagesPage from './pages/MessagesPage';
 import HowToJoinPage from './pages/HowToJoinPage';
 import BeatmapPage from './pages/BeatmapPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import ScorePage from './pages/ScorePage';
 
 function App() {
   const { t } = useTranslation();
@@ -52,6 +53,7 @@ function App() {
             <Route path="privacy-policy" element={<PrivacyPolicyPage />} />
             <Route path="beatmaps/:beatmapId" element={<BeatmapPage />} />
             <Route path="beatmapsets/:beatmapsetId" element={<BeatmapPage />} />
+            <Route path="scores/:scoreId" element={<ScorePage />} />
             <Route
               path="beatmaps"
               element={
