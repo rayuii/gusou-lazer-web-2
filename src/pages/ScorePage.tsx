@@ -110,7 +110,7 @@ const GradeLadder: React.FC<{ active: string; hasSilver?: boolean }> = ({ active
             overflow: 'hidden',
           }}>
             <img
-              src={`image/grades/${gradeFilename(rankCode)}.svg`}
+              src={`../image/grades/${gradeFilename(rankCode)}.svg`}
               alt={g}
               style={{
                 width: 20, height: 20, objectFit: 'contain',
@@ -195,13 +195,13 @@ const ModIcon: React.FC<{ mod: any }> = ({ mod }) => {
   if (filename) {
     return (
       <img
-        src={`image/mods/${filename}.svg`}
+        src={`../image/mods/${filename}.svg`}
         alt={acronym}
         title={acronym}
         style={{ height: 32, width: 'auto', objectFit: 'contain' }}
         onError={(e) => {
           // fall back to painted blank icon
-          (e.currentTarget as HTMLImageElement).src = 'image/mods/blanks/mod-icon.svg';
+          (e.currentTarget as HTMLImageElement).src = '../image/mods/blanks/mod-icon.svg';
           (e.currentTarget as HTMLImageElement).style.filter = 'hue-rotate(30deg) saturate(2)';
         }}
       />
@@ -211,7 +211,7 @@ const ModIcon: React.FC<{ mod: any }> = ({ mod }) => {
   // Unknown mod — blank icon with label overlay
   return (
     <div style={{ position: 'relative', height: 32, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-      <img src="image/mods/blanks/mod-icon.svg" alt={acronym} style={{ height: 32, width: 'auto', objectFit: 'contain' }} />
+      <img src="../image/mods/blanks/mod-icon.svg" alt={acronym} style={{ height: 32, width: 'auto', objectFit: 'contain' }} />
       <span style={{
         position: 'absolute', fontSize: 9, fontWeight: 900, color: '#fff',
         letterSpacing: '0.02em', textAlign: 'center', lineHeight: 1,
