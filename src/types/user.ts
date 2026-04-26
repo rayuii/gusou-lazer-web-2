@@ -68,7 +68,13 @@ export interface User {
     raw: string;
   };
   previous_usernames: string[];
-  badges: unknown[];
+  badges: {
+    awarded_at: string;
+    description: string;
+    'image@2x_url': string;
+    image_url: string;
+    url: string;
+  }[];
   is_restricted: boolean;
   beatmap_playcounts_count: number;
   playmode: string;
@@ -94,7 +100,14 @@ export interface User {
   is_qat: boolean;
   is_bng: boolean;
   is_online: number;
-  groups: unknown[];
+  groups: {
+    id: number;
+    name: string;
+    short_name: string;
+    colour: string;
+    is_probationary: boolean;
+    playmodes: string[] | null;
+  }[];
   country: {
     code: string;
     name: string;

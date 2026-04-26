@@ -320,10 +320,39 @@ const UserProfileLayout: React.FC<UserProfileLayoutProps> = ({ user, selectedMod
             />
           </div>
           <div className="flex-1">
-            <h1 className="mt-[-12px] md:mt-[-15px] ml-0 md:ml-[-10px] text-xl md:text-3xl font-bold mb-3 md:mb-2 text-gray-900 dark:text-gray-100">
-              {user.username}
-            </h1>
-            <div className="flex mt-[-10px] items-center gap-2 md:gap-4 md:mt-[10px] md:ml-[-8px] flex-wrap">
+            {/* Row 1: Username + group badges inline */}
+            <div className="flex items-center flex-wrap gap-2 mt-[-12px] md:mt-[-15px] ml-0 md:ml-[-10px] mb-1">
+              <h1 className="text-xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">
+                {user.username}
+              </h1>
+              {user.groups && user.groups.length > 0 && user.groups.map(group => (
+                <React.Fragment key={group.id}>
+                  <span
+                    className="text-[10px] font-bold px-1.5 py-0.5 rounded cursor-default"
+                    style={{
+                      backgroundColor: group.colour + '33',
+                      color: group.colour,
+                      border: `1px solid ${group.colour}66`,
+                    }}
+                    data-tooltip-id={`group-tooltip-${group.id}`}
+                    data-tooltip-content={group.name}
+                  >
+                    {group.short_name}
+                  </span>
+                  <Tooltip id={`group-tooltip-${group.id}`} />
+                </React.Fragment>
+              ))}
+            </div>
+
+            {/* Row 2: Title (if exists) */}
+            {user.title && (
+              <div className="text-sm font-medium mb-1 ml-0 md:ml-[-10px]" style={{ color: profileColor }}>
+                {user.title}
+              </div>
+            )}
+
+            {/* Row 3: Country + team */}
+            <div className="flex items-center gap-2 md:gap-4 ml-0 md:ml-[-8px] flex-wrap mb-2">
               {user.country?.code && (
                 <div className="flex items-center gap-2">
                   <img
@@ -357,6 +386,32 @@ const UserProfileLayout: React.FC<UserProfileLayoutProps> = ({ user, selectedMod
                 </div>
               )}
             </div>
+
+            {/* Row 4: Tournament badges */}
+            {user.badges && user.badges.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 ml-0 md:ml-[-8px]">
+                {user.badges.map((badge, i) => (
+                  <React.Fragment key={i}>
+                    <a
+                      href={badge.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      data-tooltip-id={`badge-tooltip-${i}`}
+                      data-tooltip-content={`${badge.description} • ${new Date(badge.awarded_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`}
+                    >
+                      <img
+                        src={badge['image@2x_url'] || badge.image_url}
+                        alt={badge.description}
+                        className="h-[34px] w-auto rounded object-contain hover:scale-110 transition-transform duration-150"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </a>
+                    <Tooltip id={`badge-tooltip-${i}`} />
+                  </React.Fragment>
+                ))}
+              </div>
+            )}
           </div>
           <button
             onClick={handleToggleCover}
