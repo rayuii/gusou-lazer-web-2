@@ -106,7 +106,7 @@ const getActivityIcon = (type: string) => {
 };
 
 // 获取活动描述
-const getActivityDescription = (activity: UserActivity, t: any, profileColor: string) => {
+const getActivityDescription = (activity: UserActivity, profileColor: string) => {
   const username = (
     <span className="font-medium" style={{ color: profileColor }}>
       {activity.user?.username}
@@ -130,6 +130,26 @@ const getActivityDescription = (activity: UserActivity, t: any, profileColor: st
           >
             {activity.beatmap?.title}
           </BeatmapLink>
+          {activity.scorerank && (
+            <img
+              src={(() => {
+                const map: Record<string, string> = {
+                  SSH: '/image/grades/SS-Silver.svg',
+                  SS: '/image/grades/SS.svg',
+                  SH: '/image/grades/S-Silver.svg',
+                  S: '/image/grades/S.svg',
+                  A: '/image/grades/A.svg',
+                  B: '/image/grades/B.svg',
+                  C: '/image/grades/C.svg',
+                  D: '/image/grades/D.svg',
+                  F: '/image/grades/F.svg',
+                };
+                return map[activity.scorerank!] || map['F'];
+              })()}
+              alt={activity.scorerank}
+              className="w-5 h-5"
+            />
+          )}
           {activity.mode && (
             <span className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm">({activity.mode})</span>
           )}
@@ -410,7 +430,7 @@ const UserRecentActivity: React.FC<UserRecentActivityProps> = ({ userId, classNa
               
               <div className="flex-grow min-w-0">
                 <div className="text-gray-900 dark:text-gray-100">
-                  {getActivityDescription(activity, t, profileColor)}
+                  {getActivityDescription(activity, profileColor)}
                 </div>
                 {/* 手机端时间显示在描述下方 */}
                 <div className="flex items-center gap-2 mt-1 sm:hidden">
