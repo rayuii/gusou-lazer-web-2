@@ -28,9 +28,32 @@ function formatRatio(a: number | undefined, b: number | undefined): string {
   return String(a);
 }
 
+/** Map osu! rank letter → SVG filename in /assets/images/grades/ */
+function gradeFilename(rank: string): string {
+  const map: Record<string, string> = {
+    XH: 'SS-Silver', X: 'SS',
+    SH: 'S-Silver', S: 'S',
+    A: 'A', B: 'B', C: 'C', D: 'D', F: 'F',
+  };
+  return map[rank] ?? rank;
+}
+
 function pct(n: number) { return `${(n * 100).toFixed(2)}%`; }
 
-// Accuracy donut ring
+/**
+ * Convert a country_code like "CA" → the osu! flag emoji SVG URL.
+ * osu! uses unicode flag emoji sequences joined as hex codepoints.
+ * e.g. "CA" → 🇨🇦 → U+1F1E8 U+1F1E6 → "1f1e8-1f1e6"
+ */
+function countryFlagUrl(code: string): string {
+  if (!code || code.length !== 2) return '';
+  const base = 0x1F1E6 - 'A'.charCodeAt(0);
+  const a = (base + code.charCodeAt(0)).toString(16);
+  const b = (base + code.charCodeAt(1)).toString(16);
+  return `https://osu.ppy.sh/assets/images/flags/${a}-${b}.svg`;
+}
+
+// Accuracy donut ring — rank letter in center
 const AccuracyRing: React.FC<{ rank: string; accuracy: number }> = ({ rank, accuracy }) => {
   const size = 180;
   const stroke = 14;
@@ -40,11 +63,9 @@ const AccuracyRing: React.FC<{ rank: string; accuracy: number }> = ({ rank, accu
   const cx = size / 2;
 
   return (
-    <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
-      {/* track */}
+    <div style={{ position: 'relative', width: size, height: size, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <svg width={size} height={size} style={{ position: 'absolute', top: 0, left: 0, transform: 'rotate(-90deg)' }}>
         <circle cx={cx} cy={cx} r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={stroke} />
-        {/* accuracy fill */}
         <circle
           cx={cx} cy={cx} r={r} fill="none"
           stroke={gradeColor(rank)} strokeWidth={stroke}
@@ -53,7 +74,6 @@ const AccuracyRing: React.FC<{ rank: string; accuracy: number }> = ({ rank, accu
           style={{ transition: 'stroke-dasharray 1s ease' }}
         />
       </svg>
-      {/* grade letter */}
       <span style={{
         fontSize: 72, fontWeight: 900, color: gradeColor(rank),
         textShadow: `0 0 30px ${gradeColor(rank)}88`,
@@ -65,23 +85,138 @@ const AccuracyRing: React.FC<{ rank: string; accuracy: number }> = ({ rank, accu
   );
 };
 
-// Grade ladder (A B C D)
-const GradeLadder: React.FC<{ active: string }> = ({ active }) => {
-  const grades = ['A', 'B', 'C', 'D'];
+// Grade ladder — SS/S/A/B/C/D, silver variants when HD/FL active
+const GradeLadder: React.FC<{ active: string; hasSilver?: boolean }> = ({ active, hasSilver }) => {
+  // Map display grade → actual rank code (silver if HD)
+  const displayGrades = ['SS', 'S', 'A', 'B', 'C', 'D'];
+  const toRankCode = (g: string) => {
+    if (hasSilver && g === 'SS') return 'XH';
+    if (hasSilver && g === 'S') return 'SH';
+    if (g === 'SS') return 'X';
+    return g;
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginRight: 8 }}>
-      {grades.map(g => (
-        <div key={g} style={{
-          width: 28, height: 28, borderRadius: 6,
-          background: g === active ? gradeBg(g) : 'rgba(255,255,255,0.04)',
-          border: `1.5px solid ${g === active ? gradeColor(g) : 'rgba(255,255,255,0.1)'}`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 12, fontWeight: 700,
-          color: g === active ? gradeColor(g) : 'rgba(255,255,255,0.3)',
-        }}>
-          {g}
-        </div>
-      ))}
+      {displayGrades.map(g => {
+        const rankCode = toRankCode(g);
+        const isActive = rankCode === active || g === active;
+        return (
+          <div key={g} style={{
+            width: 28, height: 28, borderRadius: 6,
+            background: isActive ? gradeBg(rankCode) : 'rgba(255,255,255,0.04)',
+            border: `1.5px solid ${isActive ? gradeColor(rankCode) : 'rgba(255,255,255,0.1)'}`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            overflow: 'hidden',
+          }}>
+            <img
+              src={`image/grades/${gradeFilename(rankCode)}.svg`}
+              alt={g}
+              style={{
+                width: 20, height: 20, objectFit: 'contain',
+                opacity: isActive ? 1 : 0.3,
+                filter: isActive ? `drop-shadow(0 0 4px ${gradeColor(rankCode)}88)` : 'none',
+              }}
+            />
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+// Acronym → osu! mod SVG filename mapping
+const MOD_FILENAMES: Record<string, string> = {
+  // Difficulty Reduction
+  EZ: 'mod-easy',
+  NF: 'mod-no-fail',
+  HT: 'mod-half-time',
+  DC: 'mod-daycore',
+  // Difficulty Increase
+  HR: 'mod-hard-rock',
+  SD: 'mod-sudden-death',
+  PF: 'mod-perfect',
+  DT: 'mod-double-time',
+  NC: 'mod-nightcore',
+  HD: 'mod-hidden',
+  FL: 'mod-flashlight',
+  AC: 'mod-accuracy-challenge',
+  // Automation
+  RX: 'mod-relax',
+  AP: 'mod-autopilot',
+  AT: 'mod-autoplay',
+  CN: 'mod-cinema',
+  // Conversion
+  MR: 'mod-mirror',
+  RD: 'mod-random',
+  AL: 'mod-alternate',
+  SG: 'mod-single-tap',
+  // Fun
+  BL: 'mod-blinds',
+  ST: 'mod-strict-tracking',
+  DP: 'mod-depth',
+  TC: 'mod-target-practice',
+  BR: 'mod-barrel-roll',
+  AD: 'mod-approach-different',
+  MU: 'mod-muted',
+  NS: 'mod-no-scope',
+  MB: 'mod-magnetised',
+  // System
+  SO: 'mod-spun-out',
+  TR: 'mod-transform',
+  WG: 'mod-wiggle',
+  SI: 'mod-wind-up',
+  WD: 'mod-wind-down',
+  GR: 'mod-grow',
+  DF: 'mod-deflate',
+  FR: 'mod-freeze-frame',
+  BU: 'mod-bubbles',
+  SY: 'mod-synesthesia',
+  CL: 'mod-classic',
+  SV2: 'mod-scroll-speed',
+  AS: 'mod-adaptive-speed',
+  CS: 'mod-constant-speed',
+  // Mania specific
+  '1K': 'mod-one-key', '2K': 'mod-two-keys', '3K': 'mod-three-keys',
+  '4K': 'mod-four-keys', '5K': 'mod-five-keys', '6K': 'mod-six-keys',
+  '7K': 'mod-seven-keys', '8K': 'mod-eight-keys', '9K': 'mod-nine-keys',
+  '10K': 'mod-ten-keys',
+  DS: 'mod-dual-stages',
+  FI: 'mod-fade-in',
+  CO: 'mod-cover',
+  HO: 'mod-hold-off',
+  IN: 'mod-invert',
+};
+
+const ModIcon: React.FC<{ mod: any }> = ({ mod }) => {
+  const acronym: string = mod?.acronym ?? mod ?? '??';
+  const filename = MOD_FILENAMES[acronym];
+
+  if (filename) {
+    return (
+      <img
+        src={`image/mods/${filename}.svg`}
+        alt={acronym}
+        title={acronym}
+        style={{ height: 32, width: 'auto', objectFit: 'contain' }}
+        onError={(e) => {
+          // fall back to painted blank icon
+          (e.currentTarget as HTMLImageElement).src = 'image/mods/blanks/mod-icon.svg';
+          (e.currentTarget as HTMLImageElement).style.filter = 'hue-rotate(30deg) saturate(2)';
+        }}
+      />
+    );
+  }
+
+  // Unknown mod — blank icon with label overlay
+  return (
+    <div style={{ position: 'relative', height: 32, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+      <img src="image/mods/blanks/mod-icon.svg" alt={acronym} style={{ height: 32, width: 'auto', objectFit: 'contain' }} />
+      <span style={{
+        position: 'absolute', fontSize: 9, fontWeight: 900, color: '#fff',
+        letterSpacing: '0.02em', textAlign: 'center', lineHeight: 1,
+        textShadow: '0 1px 2px rgba(0,0,0,0.8)',
+      }}>{acronym}</span>
     </div>
   );
 };
@@ -147,18 +282,34 @@ const ScorePage: React.FC = () => {
   const pp = score.pp ? Math.round(score.pp) : null;
   const ppFc = score.pp_fc ? Math.round(score.pp_fc) : null;
 
-  const coverUrl = bms.covers?.cover || bms.covers?.['cover@2x'] || '';
+  // Cover: prefer beatmapset cover, fall back to list cover
+  const coverUrl =
+    bms.covers?.cover ||
+    bms.covers?.['cover@2x'] ||
+    bms.covers?.list ||
+    bms.covers?.['list@2x'] ||
+    (bms.id ? `https://assets.ppy.sh/beatmaps/${bms.id}/covers/cover.jpg` : '');
+
+  // User profile cover (shown as card background)
+  const userCoverUrl = user.cover?.url || user.cover_url || '';
+
   const submittedAt = score.ended_at ? new Date(score.ended_at).toLocaleString('en-GB', {
     day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
   }) : '—';
 
-  // slider/spinner stats (only show if present)
+  const beatmapUrl = bm.id
+    ? `/beatmapsets/${bms.id ?? ''}#osu/${bm.id}`
+    : undefined;
+
   const sliderStats = [
     { label: 'SLIDER TICK', value: formatRatio(stats.large_tick_hit, stats.large_tick_miss) },
     { label: 'SLIDER END', value: formatRatio(stats.slider_tail_hit, undefined) },
     { label: 'SPINNER SPIN', value: formatRatio(stats.spinner_spin_count, undefined) },
     { label: 'SPINNER BONUS', value: formatRatio(stats.spinner_bonus, undefined) },
   ].filter(s => s.value !== '—' && s.value !== '0');
+
+  const flagUrl = countryFlagUrl(user.country_code ?? user.country?.code ?? '');
+  const teamFlagUrl = user.team?.flag_url ?? '';
 
   return (
     <div style={{ maxWidth: 1000, margin: '0 auto', padding: '24px 16px', fontFamily: 'inherit' }}>
@@ -171,11 +322,18 @@ const ScorePage: React.FC = () => {
         borderBottom: '1px solid rgba(255,255,255,0.08)',
       }}>
         <div style={{ fontSize: 20, fontWeight: 800, color: '#fff' }}>
-          {bms.title || '—'}{' '}
+          {beatmapUrl ? (
+            <Link to={beatmapUrl} style={{ color: '#fff', textDecoration: 'none' }}
+              onMouseEnter={e => (e.currentTarget.style.textDecoration = 'underline')}
+              onMouseLeave={e => (e.currentTarget.style.textDecoration = 'none')}
+            >
+              {bms.title || '—'}
+            </Link>
+          ) : (bms.title || '—')}
+          {' '}
           <span style={{ fontWeight: 400, color: 'rgba(255,255,255,0.6)' }}>by {bms.artist || '—'}</span>
         </div>
         <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
-          {/* mode icon placeholder */}
           <div style={{
             width: 22, height: 22, borderRadius: '50%',
             background: 'rgba(255,105,180,0.3)',
@@ -183,7 +341,6 @@ const ScorePage: React.FC = () => {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 11,
           }}>●</div>
-          {/* star rating */}
           <span style={{
             background: 'rgba(255,215,0,0.15)',
             border: '1px solid rgba(255,215,0,0.4)',
@@ -193,7 +350,6 @@ const ScorePage: React.FC = () => {
           }}>
             ★ {Number(bm.difficulty_rating || 0).toFixed(2)}
           </span>
-          {/* diff name + mapper */}
           <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: 14 }}>
             {bm.version || '—'}
           </span>
@@ -211,13 +367,14 @@ const ScorePage: React.FC = () => {
         borderRadius: '0 0 12px 12px',
         marginBottom: 16,
         minHeight: 280,
+        background: '#111', // ensure something shows even if cover fails
       }}>
         {/* blurred background */}
         {coverUrl && (
           <>
             <div style={{
               position: 'absolute', inset: 0,
-              backgroundImage: `url(${coverUrl})`,
+              backgroundImage: `url("${coverUrl}")`,
               backgroundSize: 'cover', backgroundPosition: 'center',
               filter: 'blur(2px) brightness(0.35)',
               transform: 'scale(1.05)',
@@ -230,26 +387,15 @@ const ScorePage: React.FC = () => {
         )}
 
         <div style={{ position: 'relative', zIndex: 1, padding: '24px 20px', display: 'flex', alignItems: 'center', gap: 20 }}>
-          {/* grade ladder */}
-          <GradeLadder active={rank} />
-
-          {/* accuracy ring */}
+          <GradeLadder active={rank} hasSilver={score.mods?.some((m: any) => (m?.acronym ?? m) === 'HD' || (m?.acronym ?? m) === 'FL')} />
           <AccuracyRing rank={rank} accuracy={accuracy} />
 
-          {/* score info */}
           <div style={{ flex: 1 }}>
             {/* mods */}
             {score.mods && score.mods.length > 0 && (
               <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
-                {score.mods.map((mod: any) => (
-                  <span key={mod.acronym ?? mod} style={{
-                    background: 'rgba(255,160,0,0.2)',
-                    border: '1px solid rgba(255,160,0,0.5)',
-                    color: '#ffa000', fontSize: 11, fontWeight: 700,
-                    padding: '2px 8px', borderRadius: 4,
-                  }}>
-                    {mod.acronym ?? mod}
-                  </span>
+                {score.mods.map((mod: any, i: number) => (
+                  <ModIcon key={mod?.acronym ?? i} mod={mod} />
                 ))}
               </div>
             )}
@@ -332,11 +478,11 @@ const ScorePage: React.FC = () => {
             height: '100%',
             position: 'relative',
           }}>
-            {/* cover */}
-            {user.cover_url && (
+            {/* user profile cover as background */}
+            {userCoverUrl && (
               <div style={{
                 position: 'absolute', inset: 0,
-                backgroundImage: `url(${user.cover_url})`,
+                backgroundImage: `url("${userCoverUrl}")`,
                 backgroundSize: 'cover', backgroundPosition: 'center',
                 filter: 'brightness(0.3)',
               }} />
@@ -349,13 +495,22 @@ const ScorePage: React.FC = () => {
                   style={{ width: 64, height: 64, borderRadius: 10, objectFit: 'cover', border: '2px solid rgba(255,255,255,0.2)' }}
                 />
                 <div>
-                  {/* country + badges */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                    {user.country_code && (
+                  {/* country flag + team flag */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                    {flagUrl && (
                       <img
-                        src={`https://flagcdn.com/20x15/${user.country_code.toLowerCase()}.png`}
-                        alt={user.country_code}
-                        style={{ borderRadius: 2 }}
+                        src={flagUrl}
+                        alt={user.country_code ?? ''}
+                        title={user.country?.name ?? user.country_code}
+                        style={{ width: 20, height: 15, borderRadius: 2, objectFit: 'cover' }}
+                      />
+                    )}
+                    {teamFlagUrl && (
+                      <img
+                        src={teamFlagUrl}
+                        alt={user.team?.short_name ?? ''}
+                        title={user.team?.name ?? ''}
+                        style={{ height: 18, maxWidth: 40, objectFit: 'contain', borderRadius: 2 }}
                       />
                     )}
                   </div>
@@ -366,9 +521,6 @@ const ScorePage: React.FC = () => {
                     ) : (
                       `Last seen ${user.last_visit ? new Date(user.last_visit).toLocaleDateString() : '—'}`
                     )}
-                  </div>
-                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>
-                    {user.is_online ? 'Online' : 'Offline'}
                   </div>
                 </div>
               </div>
