@@ -495,8 +495,8 @@ const ScorePage: React.FC = () => {
                     style={{ width: 44, height: 44, borderRadius: 8, objectFit: 'cover', border: '2px solid rgba(255,255,255,0.15)', display: 'block' }}
                   />
                   <div style={{
-                    width: 14, height: 14, borderRadius: '50%',
-                    border: `2.5px solid ${user.is_online ? '#4caf50' : '#666'}`,
+                    width: 40, height: 40, borderRadius: '50%',
+                    border: `3px solid ${user.is_online ? '#4caf50' : '#666'}`,
                     background: 'transparent',
                   }} />
                 </div>
