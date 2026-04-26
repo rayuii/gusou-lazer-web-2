@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useProfileColor } from '../../contexts/ProfileColorContext';
 
 interface Achievement {
@@ -11,28 +11,13 @@ interface MedalInfo {
   name: string;
   slug: string;
   description: string;
-  grouping: string;
-  ordering: number;
-  icon_url?: string;
+  icon_url: string;
 }
 
 interface UserMedalsProps {
   userAchievements: unknown[];
   className?: string;
 }
-
-// Known medal groupings in display order (matches osu! website)
-const MEDAL_GROUPS = [
-  'Skill',
-  'Dedication',
-  'Hush-Hush',
-  'Hush-Hush (Expert)',
-  'Beatmap Spotlights',
-  'Seasonal Spotlights',
-  'Beatmap Challenge Packs',
-  'Challenge Packs',
-  'Mod Introduction',
-];
 
 const SectionHeader: React.FC<{ title: string; count?: number; profileColor: string }> = ({ title, count, profileColor }) => (
   <div className="flex items-center gap-3 mb-3">
@@ -46,8 +31,8 @@ const SectionHeader: React.FC<{ title: string; count?: number; profileColor: str
   </div>
 );
 
-const MedalIcon: React.FC<{ slug: string; name: string; unlocked: boolean; achievedAt?: string }> = ({
-  slug, name, unlocked, achievedAt
+const MedalIcon: React.FC<{ medal: MedalInfo; unlocked: boolean; achievedAt?: string }> = ({
+  medal, unlocked, achievedAt
 }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const [imgError, setImgError] = useState(false);
@@ -66,8 +51,8 @@ const MedalIcon: React.FC<{ slug: string; name: string; unlocked: boolean; achie
       >
         {!imgError ? (
           <img
-            src={`/image/achievement_images/${slug}@2x.png`}
-            alt={name}
+            src={medal.icon_url}
+            alt={medal.name}
             className="w-10 h-10 object-contain"
             onError={() => setImgError(true)}
           />
@@ -76,10 +61,10 @@ const MedalIcon: React.FC<{ slug: string; name: string; unlocked: boolean; achie
         )}
       </div>
 
-      {/* Tooltip */}
       {showTooltip && (
         <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-50 w-max max-w-[160px] bg-gray-900 dark:bg-gray-700 text-white text-xs rounded px-2 py-1 text-center pointer-events-none shadow-lg">
-          <div className="font-semibold">{name}</div>
+          <div className="font-semibold">{medal.name}</div>
+          <div className="text-gray-300 mt-0.5">{medal.description}</div>
           {unlocked && achievedAt && (
             <div className="text-gray-300 mt-0.5">
               {new Date(achievedAt).toLocaleDateString()}
@@ -95,6 +80,14 @@ const MedalIcon: React.FC<{ slug: string; name: string; unlocked: boolean; achie
 
 const UserMedals: React.FC<UserMedalsProps> = ({ userAchievements, className = '' }) => {
   const { profileColor } = useProfileColor();
+  const [medals, setMedals] = useState<MedalInfo[]>([]);
+
+  useEffect(() => {
+    fetch('/api/v2/medals')
+      .then(r => r.json())
+      .then(setMedals)
+      .catch(() => {});
+  }, []);
 
   const achievements = (userAchievements as Achievement[]).filter(
     a => typeof a === 'object' && a !== null && 'achievement_id' in a
@@ -103,11 +96,13 @@ const UserMedals: React.FC<UserMedalsProps> = ({ userAchievements, className = '
   const unlockedIds = new Set(achievements.map(a => a.achievement_id));
   const achievedAtMap = new Map(achievements.map(a => [a.achievement_id, a.achieved_at]));
 
-  // Since we don't have a medals API endpoint yet, we show what we know from user_achievements
-  // Latest medals section shows the most recently unlocked
   const latestAchievements = [...achievements]
     .sort((a, b) => new Date(b.achieved_at).getTime() - new Date(a.achieved_at).getTime())
     .slice(0, 8);
+
+  const latestMedals = latestAchievements
+    .map(a => medals.find(m => m.id === a.achievement_id))
+    .filter((m): m is MedalInfo => m !== undefined);
 
   if (achievements.length === 0) {
     return (
@@ -124,45 +119,37 @@ const UserMedals: React.FC<UserMedalsProps> = ({ userAchievements, className = '
     <div className={className}>
       <SectionHeader title="Medals" count={achievements.length} profileColor={profileColor} />
 
-      {/* Latest unlocked */}
       <div className="mb-6">
         <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3 border-b border-gray-200 dark:border-gray-700 pb-1">
           Latest
         </div>
         <div className="flex flex-wrap gap-3">
-          {latestAchievements.map(a => (
+          {latestMedals.map(medal => (
             <MedalIcon
-              key={a.achievement_id}
-              slug={`achievement-${a.achievement_id}`}
-              name={`Achievement #${a.achievement_id}`}
+              key={medal.id}
+              medal={medal}
               unlocked={true}
-              achievedAt={a.achieved_at}
+              achievedAt={achievedAtMap.get(medal.id)}
             />
           ))}
         </div>
       </div>
 
-      {/* All unlocked */}
       <div>
         <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3 border-b border-gray-200 dark:border-gray-700 pb-1">
           All Unlocked ({achievements.length})
         </div>
         <div className="flex flex-wrap gap-3">
-          {achievements.map(a => (
+          {medals.filter(m => unlockedIds.has(m.id)).map(medal => (
             <MedalIcon
-              key={a.achievement_id}
-              slug={`achievement-${a.achievement_id}`}
-              name={`Achievement #${a.achievement_id}`}
+              key={medal.id}
+              medal={medal}
               unlocked={true}
-              achievedAt={a.achieved_at}
+              achievedAt={achievedAtMap.get(medal.id)}
             />
           ))}
         </div>
       </div>
-
-      <p className="mt-6 text-xs text-gray-400 dark:text-gray-600">
-        Full medal names and categories require a medals API endpoint — add <code>/api/v2/medals</code> to your server to display complete medal info.
-      </p>
     </div>
   );
 };

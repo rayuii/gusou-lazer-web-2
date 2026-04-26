@@ -185,7 +185,12 @@ const UserProfileLayout: React.FC<UserProfileLayoutProps> = ({ user, selectedMod
   }, [preferences.profile_cover_expanded]);
 
   const handleAvatarUpdate = async (newAvatarUrl: string) => {
-    setTimeout(async () => { await refreshUser(); }, 3000);
+    console.log('头像更新成功，延迟刷新用户信息:', newAvatarUrl);
+    // 延迟刷新用户信息，确保服务器端已经处理完成
+    setTimeout(async () => {
+      console.log('执行延迟刷新用户信息');
+      await refreshUser();
+    }, 3000); // 延迟3秒，给服务器更多时间处理
   };
 
   const handleToggleCover = async () => {
