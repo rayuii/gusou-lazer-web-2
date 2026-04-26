@@ -21,6 +21,8 @@ import { Tooltip } from 'react-tooltip';
 import { useAuth } from '../../hooks/useAuth';
 import { useUserPreferences } from '../../hooks/useUserPreferences';
 import { useProfileColor } from '../../contexts/ProfileColorContext';
+import UserInfoBar from './UserInfoBar';
+import ProfileSectionTabs from './ProfileSectionTabs';
 
 interface UserProfileLayoutProps {
   user: User;
@@ -210,19 +212,19 @@ const UserProfileLayout: React.FC<UserProfileLayoutProps> = ({ user, selectedMod
     switch (section) {
       case 'me':
         return (
-          <div key="me" className="px-3 md:px-6 lg:px-8 py-4 border-b border-card">
+          <div key="me" id="section-me" className="px-3 md:px-6 lg:px-8 py-4 border-b border-card">
             <UserPageDisplay user={user} onUserUpdate={onUserUpdate} />
           </div>
         );
       case 'recent_activity':
         return (
-          <div key="recent_activity" className="px-3 md:px-6 lg:px-8 py-4 border-b border-card">
+          <div key="recent_activity" id="section-recent_activity" className="px-3 md:px-6 lg:px-8 py-4 border-b border-card">
             <UserRecentActivity userId={user.id} />
           </div>
         );
       case 'top_ranks':
         return (
-          <div key="top_ranks">
+          <div key="top_ranks" id="section-top_ranks">
             <div className="px-3 md:px-6 lg:px-8 py-4 border-b border-card">
               <UserPinnedScores
                 userId={user.id}
@@ -258,7 +260,7 @@ const UserProfileLayout: React.FC<UserProfileLayoutProps> = ({ user, selectedMod
         );
       case 'historical':
         return (
-          <div key="historical">
+          <div key="historical" id="section-historical">
             <div className="px-3 md:px-6 lg:px-8 py-4 border-b border-card">
               <UserRecentScores userId={user.id} selectedMode={selectedMode} user={user} />
             </div>
@@ -477,19 +479,23 @@ const UserProfileLayout: React.FC<UserProfileLayoutProps> = ({ user, selectedMod
         </div>
 
         <div className="bg-transparent md:bg-card px-3 md:px-6 lg:px-8 py-4 md:py-6 relative border-b border-card">
-          <div className="flex items-center justify-between relative">
-            <FriendStats user={user} />
-            <div className="flex items-center gap-4">
-              <LevelProgress
-                levelCurrent={levelCurrent}
-                levelProgress={levelProgress}
-                className="flex-1"
-                tint={profileColor}
-              />
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <FriendStats user={user} />
+              <div className="flex items-center gap-4">
+                <LevelProgress
+                  levelCurrent={levelCurrent}
+                  levelProgress={levelProgress}
+                  className="flex-1"
+                  tint={profileColor}
+                />
+              </div>
             </div>
+            <UserInfoBar user={user} />
           </div>
         </div>
 
+        <ProfileSectionTabs sections={profileOrder} />
         <div className="bg-card md:rounded-b-2xl">
           {profileOrder.map(section => renderSection(section))}
         </div>
