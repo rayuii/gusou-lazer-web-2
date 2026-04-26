@@ -409,13 +409,13 @@ const BeatmapPage: React.FC = () => {
                 </div>
               </div>
             )}
+            {selectedBeatmap && (
+              <BeatmapLeaderboard
+                beatmapId={selectedBeatmap.id}
+                mode={selectedBeatmap.mode as 'osu' | 'taiko' | 'fruits' | 'mania'}
+              />
+            )}
           </div>
-          {selectedBeatmap && (
-            <BeatmapLeaderboard
-              beatmapId={selectedBeatmap.id}
-              mode={selectedBeatmap.mode as 'osu' | 'taiko' | 'fruits' | 'mania'}
-            />
-          )}
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Beatmapset Info */}
