@@ -106,6 +106,31 @@ const UnderConstruction: React.FC<{ label: string }> = ({ label }) => (
 
 const DEFAULT_PROFILE_ORDER = ['me', 'recent_activity', 'top_ranks', 'medals', 'historical', 'beatmaps'];
 
+const getRankingTier = (globalRank?: number, globalRankPercent?: number) => {
+  if (!globalRank || globalRankPercent == null) return null;
+  if (globalRank <= 100) return { name: 'Lustrous', gradient: { from: '#FFE600', to: '#ED82FF' } };
+  if (globalRankPercent < 0.0005) return { name: 'Radiant', gradient: { from: '#97DCFF', to: '#ED82FF' } };
+  if (globalRankPercent < 0.0015) return { name: 'Rhodium', gradient: { from: '#D9F8D3', to: '#A0CF96' } };
+  if (globalRankPercent < 0.005) return { name: 'Platinum', gradient: { from: '#A8F0EF', to: '#52E0DF' } };
+  if (globalRankPercent < 0.015) return { name: 'Gold', gradient: { from: '#F0E4A8', to: '#E0C952' } };
+  if (globalRankPercent < 0.05) return { name: 'Silver', gradient: { from: '#E0E0EB', to: '#A3A3C2' } };
+  if (globalRankPercent < 0.15) return { name: 'Bronze', gradient: { from: '#B88F7A', to: '#855C47' } };
+  if (globalRankPercent < 0.5) return { name: 'Iron', gradient: { flat: '#BAB3AB' } };
+  return null;
+};
+
+const getTierStyle = (tier: ReturnType<typeof getRankingTier>): React.CSSProperties => {
+  if (!tier) return {};
+  const g = tier.gradient;
+  if ('flat' in g) return { color: g.flat };
+  return {
+    background: `linear-gradient(to bottom, ${g.from}, ${g.to})`,
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text',
+  };
+};
+
 const UserProfileLayout: React.FC<UserProfileLayoutProps> = ({ user, selectedMode, onModeChange, onUserUpdate }) => {
   const { t } = useTranslation();
   const { refreshUser, user: currentUser } = useAuth();
@@ -123,6 +148,7 @@ const UserProfileLayout: React.FC<UserProfileLayoutProps> = ({ user, selectedMod
   } | null>(null);
 
   const stats = user.statistics_rulesets?.[selectedMode] ?? user.statistics;
+  const tier = getRankingTier(stats?.global_rank, stats?.global_rank_percent);
   const gradeCounts = stats?.grade_counts ?? { ssh: 0, ss: 0, sh: 0, s: 0, a: 0 };
   const levelProgress = stats?.level?.progress ?? 0;
   const levelCurrent = stats?.level?.current ?? 0;
@@ -353,7 +379,9 @@ const UserProfileLayout: React.FC<UserProfileLayoutProps> = ({ user, selectedMod
               <div className="flex gap-8 p-3 md:rounded-lg md:rank-card-shadow mb-[20px] ml-0 md:ml-[-10px]">
                 <div className="text-center">
                   <div className="text-gray-500 dark:text-gray-400 mb-1 text-[12px]">{t('profile.info.globalRank')}</div>
-                  <div className="font-bold text-primary text-[20px]">#{stats?.global_rank ?? '—'}</div>
+                  <div className="font-bold text-[20px]" style={getTierStyle(tier)}>
+                    #{stats?.global_rank ?? '—'}
+                  </div>
                 </div>
                 <div className="text-center">
                   <div className="text-gray-500 dark:text-gray-400 text-[12px]">{t('profile.info.countryRank')}</div>
