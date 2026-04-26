@@ -488,22 +488,22 @@ const ScorePage: React.FC = () => {
             )}
             <div style={{ position: 'relative', zIndex: 1, padding: '10px 12px' }}>
               <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+                <div style={{ position: 'relative', flexShrink: 0, width: 44, height: 44 }}>
                   <img
                     src={user.avatar_url}
                     alt={user.username}
                     style={{ width: 44, height: 44, borderRadius: 8, objectFit: 'cover', border: '2px solid rgba(255,255,255,0.15)', display: 'block' }}
                   />
-                  {/* online indicator ring below avatar */}
                   <div style={{
-                    width: 16, height: 16, borderRadius: '50%',
-                    border: `3px solid ${user.is_online ? '#4caf50' : '#555'}`,
-                    background: 'transparent',
+                    position: 'absolute', bottom: -5, left: -5,
+                    width: 14, height: 14, borderRadius: '50%',
+                    border: `2.5px solid ${user.is_online ? '#4caf50' : '#666'}`,
+                    background: '#1a1a1a',
                   }} />
                 </div>
                 <div style={{ minWidth: 0 }}>
-                  {/* username + flags on same line */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3, flexWrap: 'wrap' }}>
+                  {/* flags row */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>
                     {flagUrl && (
                       <img
                         src={flagUrl}
@@ -523,14 +523,15 @@ const ScorePage: React.FC = () => {
                     {user.is_supporter && (
                       <span style={{ fontSize: 12, lineHeight: 1 }}>💗</span>
                     )}
-                    <span style={{ fontSize: 15, fontWeight: 800, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.username}</span>
                   </div>
-                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>
-                    {user.is_online ? (
-                      <span style={{ color: '#4caf50' }}>Online</span>
-                    ) : (
-                      <>Last seen {user.last_visit ? new Date(user.last_visit).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}</>
-                    )}
+                  {/* username */}
+                  <div style={{ fontSize: 15, fontWeight: 800, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: 2 }}>{user.username}</div>
+                  {/* last seen */}
+                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>
+                    {user.is_online ? 'Online' : `Last seen ${user.last_visit ? new Date(user.last_visit).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}`}
+                  </div>
+                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>
+                    {user.is_online ? '' : 'Offline'}
                   </div>
                 </div>
               </div>
