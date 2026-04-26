@@ -182,18 +182,51 @@ const RankBadge: React.FC<{ letter: string }> = ({ letter }) => (
   </span>
 );
 
-const ModChip: React.FC<{ mod: string }> = ({ mod }) => (
-  <span
-    className="inline-flex items-center justify-center px-1.5 py-0.5 rounded text-[10px] font-bold leading-none"
-    style={{
-      backgroundColor: `${MOD_COLORS[mod] ?? '#64748b'}25`,
-      color: MOD_COLORS[mod] ?? '#94a3b8',
-      border: `1px solid ${MOD_COLORS[mod] ?? '#64748b'}40`,
-    }}
-  >
-    {mod}
-  </span>
-);
+const ModIcon: React.FC<{ mod: ScoreMod }> = ({ mod }) => {
+  const acronym = mod.acronym;
+  const filename = MOD_FILENAMES[acronym];
+  const bg = MOD_COLORS[acronym] ?? 'hsl(45, 100%, 70%)';
+
+  return (
+    <div style={{ position: 'relative', width: 28, height: 28, flexShrink: 0 }} title={acronym}>
+      <div style={{
+        position: 'absolute', inset: 0,
+        backgroundColor: bg,
+        WebkitMaskImage: 'url(../image/mods/blanks/mod-icon.svg)',
+        WebkitMaskSize: 'contain',
+        WebkitMaskRepeat: 'no-repeat',
+        WebkitMaskPosition: 'center',
+        maskImage: 'url(../image/mods/blanks/mod-icon.svg)',
+        maskSize: 'contain',
+        maskRepeat: 'no-repeat',
+        maskPosition: 'center',
+      }} />
+      {filename ? (
+        <div style={{
+          position: 'absolute', inset: 0,
+          backgroundColor: `color-mix(in srgb-linear, black, ${bg} 10%)`,
+          WebkitMaskImage: `url(../image/mods/${filename}.svg)`,
+          WebkitMaskSize: 'contain',
+          WebkitMaskRepeat: 'no-repeat',
+          WebkitMaskPosition: 'center',
+          maskImage: `url(../image/mods/${filename}.svg)`,
+          maskSize: 'contain',
+          maskRepeat: 'no-repeat',
+          maskPosition: 'center',
+        }} />
+      ) : (
+        <div style={{
+          position: 'absolute', inset: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          color: `color-mix(in srgb-linear, black, ${bg} 10%)`,
+          fontSize: 8, fontWeight: 900, lineHeight: 1,
+        }}>
+          {acronym}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const Flag: React.FC<{ cc: string }> = ({ cc }) => (
   <img
@@ -262,7 +295,7 @@ const TopScoreCard: React.FC<{ score: LeaderboardScore }> = ({ score }) => {
         {/* Mods */}
         {score.mods.length > 0 && (
           <div className="flex flex-wrap gap-1 justify-end max-w-[100px]">
-            {score.mods.map((m) => <ModChip key={m.acronym} mod={m.acronym} />)}
+            {score.mods.map((m) => <ModIcon key={m.acronym} mod={m} />)}
           </div>
         )}
       </div>
@@ -513,7 +546,7 @@ const BeatmapLeaderboard: React.FC<BeatmapLeaderboardProps> = ({ beatmapId, mode
                       <td className="px-3 py-3 text-right">
                         <div className="flex flex-wrap gap-1 justify-end">
                           {score.mods.length > 0
-                            ? score.mods.map((m) => <ModChip key={m.acronym} mod={m.acronym} />)
+                            ? score.mods.map((m) => <ModIcon key={m.acronym} mod={m} />)
                             : <span className="text-slate-400 dark:text-slate-600 text-xs">—</span>
                           }
                         </div>
