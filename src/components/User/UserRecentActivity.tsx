@@ -5,292 +5,160 @@ import type { UserActivity } from '../../types';
 import { useProfileColor } from '../../contexts/ProfileColorContext';
 import LoadingSpinner from '../UI/LoadingSpinner';
 import BeatmapLink from '../UI/BeatmapLink';
-import { FaTrophy, FaCrown, FaUpload, FaEdit, FaHeart, FaUser } from 'react-icons/fa';
+import { FaUpload, FaEdit, FaHeart, FaUser, FaTrophy, FaCrown } from 'react-icons/fa';
 
 interface UserRecentActivityProps {
   userId: number;
   className?: string;
 }
 
-// 时间格式化函数
 const formatTimeAgo = (dateString: string, t: any): string => {
   const date = new Date(dateString);
   const now = new Date();
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-
-  if (diffInSeconds < 60) {
-    return t('profile.activities.timeAgo.justNow');
-  } else if (diffInSeconds < 3600) {
-    const minutes = Math.floor(diffInSeconds / 60);
-    return t('profile.activities.timeAgo.minutesAgo', { count: minutes });
-  } else if (diffInSeconds < 86400) {
-    const hours = Math.floor(diffInSeconds / 3600);
-    return t('profile.activities.timeAgo.hoursAgo', { count: hours });
-  } else if (diffInSeconds < 2592000) {
-    const days = Math.floor(diffInSeconds / 86400);
-    return t('profile.activities.timeAgo.daysAgo', { count: days });
-  } else if (diffInSeconds < 31536000) {
-    const months = Math.floor(diffInSeconds / 2592000);
-    return t('profile.activities.timeAgo.monthsAgo', { count: months });
-  } else {
-    const years = Math.floor(diffInSeconds / 31536000);
-    return t('profile.activities.timeAgo.yearsAgo', { count: years });
-  }
+  if (diffInSeconds < 60) return t('profile.activities.timeAgo.justNow');
+  if (diffInSeconds < 3600) return t('profile.activities.timeAgo.minutesAgo', { count: Math.floor(diffInSeconds / 60) });
+  if (diffInSeconds < 86400) return t('profile.activities.timeAgo.hoursAgo', { count: Math.floor(diffInSeconds / 3600) });
+  if (diffInSeconds < 2592000) return t('profile.activities.timeAgo.daysAgo', { count: Math.floor(diffInSeconds / 86400) });
+  if (diffInSeconds < 31536000) return t('profile.activities.timeAgo.monthsAgo', { count: Math.floor(diffInSeconds / 2592000) });
+  return t('profile.activities.timeAgo.yearsAgo', { count: Math.floor(diffInSeconds / 31536000) });
 };
 
-// 成就图标组件
-const AchievementIcon: React.FC<{ slug: string; alt: string; className?: string }> = ({ slug, alt, className = "w-6 h-6" }) => {
+const GRADE_IMAGES: Record<string, string> = {
+  SSH: '/image/grades/SS-Silver.svg',
+  SS: '/image/grades/SS.svg',
+  SH: '/image/grades/S-Silver.svg',
+  S: '/image/grades/S.svg',
+  A: '/image/grades/A.svg',
+  B: '/image/grades/B.svg',
+  C: '/image/grades/C.svg',
+  D: '/image/grades/D.svg',
+  F: '/image/grades/F.svg',
+};
+
+const AchievementIcon: React.FC<{ slug: string; alt: string; className?: string }> = ({ slug, alt, className = 'w-6 h-6' }) => {
   const [imgSrc, setImgSrc] = useState(`/image/achievement_images/${slug}@2x.png`);
   const [hasError, setHasError] = useState(false);
-
-  const handleError = () => {
-    if (!hasError) {
-      // 尝试普通版本
-      setImgSrc(`/image/achievement_images/${slug}.png`);
-      setHasError(true);
-    }
-  };
-
   return (
-    <img 
+    <img
       src={imgSrc}
       alt={alt}
       className={className}
-      onError={handleError}
+      onError={() => { if (!hasError) { setImgSrc(`/image/achievement_images/${slug}.png`); setHasError(true); } }}
     />
   );
 };
 
-// 活动类型图标映射
-const getActivityIcon = (type: string) => {
-  const iconClass = "w-3 h-3";
-  switch (type) {
+const getActivityIcon = (activity: UserActivity) => {
+  switch (activity.type) {
     case 'rank':
-      return <FaTrophy className={`text-yellow-500 ${iconClass}`} />;
+      return activity.scorerank ? (
+        <img src={GRADE_IMAGES[activity.scorerank] || GRADE_IMAGES['F']} alt={activity.scorerank} className="w-5 h-5" />
+      ) : <FaTrophy className="w-4 h-4 text-yellow-500" />;
     case 'rank_lost':
-      return <FaTrophy className={`text-gray-400 ${iconClass}`} />;
+      return <FaTrophy className="w-4 h-4 text-gray-400" />;
     case 'achievement':
-      return <FaCrown className={`text-purple-500 ${iconClass}`} />;
+      return activity.achievement ? (
+        <AchievementIcon slug={activity.achievement.slug} alt={activity.achievement.name || activity.achievement.slug} className="w-5 h-5" />
+      ) : <FaCrown className="w-4 h-4 text-purple-500" />;
     case 'beatmapset_upload':
-      return <FaUpload className={`text-blue-500 ${iconClass}`} />;
+      return <FaUpload className="w-4 h-4 text-blue-500" />;
     case 'beatmapset_approve':
     case 'beatmapset_revive':
     case 'beatmapset_update':
-      return <FaEdit className={`text-green-500 ${iconClass}`} />;
+      return <FaEdit className="w-4 h-4 text-green-500" />;
     case 'user_support_again':
     case 'user_support_first':
     case 'user_support_gift':
-      return <FaHeart className={`text-red-500 ${iconClass}`} />;
+      return <FaHeart className="w-4 h-4 text-red-500" />;
     case 'username_change':
     case 'userpageUpdate':
-      return <FaUser className={`text-blue-400 ${iconClass}`} />;
+      return <FaUser className="w-4 h-4 text-blue-400" />;
     default:
-      return <FaTrophy className={`text-gray-500 ${iconClass}`} />;
+      return <FaTrophy className="w-4 h-4 text-gray-500" />;
   }
 };
 
-// 获取活动描述
 const getActivityDescription = (activity: UserActivity, profileColor: string) => {
-  const username = (
-    <span className="font-medium" style={{ color: profileColor }}>
-      {activity.user?.username}
-    </span>
-  );
+  const username = <span className="font-medium" style={{ color: profileColor }}>{activity.user?.username}</span>;
 
   switch (activity.type) {
     case 'rank':
       return (
-        <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-          {username}
-          <span className="text-xs sm:text-sm">achieved rank</span>
-          {activity.rank && (
-            <span className="font-bold text-yellow-400 text-xs sm:text-sm">#{activity.rank}</span>
-          )}
-          <span className="text-xs sm:text-sm">on</span>
-          <BeatmapLink
-            beatmapUrl={activity.beatmap?.url}
-            className="text-blue-400 hover:underline font-medium text-xs sm:text-sm"
-            title={activity.beatmap?.title}
-          >
+        <span>
+          {username}{' '}achieved rank{' '}
+          <strong className="text-yellow-400">#{activity.rank}</strong>
+          {' '}on{' '}
+          <BeatmapLink beatmapUrl={activity.beatmap?.url} className="text-blue-400 hover:underline font-medium" title={activity.beatmap?.title}>
             {activity.beatmap?.title}
           </BeatmapLink>
-          {activity.scorerank && (
-            <img
-              src={(() => {
-                const map: Record<string, string> = {
-                  SSH: '/image/grades/SS-Silver.svg',
-                  SS: '/image/grades/SS.svg',
-                  SH: '/image/grades/S-Silver.svg',
-                  S: '/image/grades/S.svg',
-                  A: '/image/grades/A.svg',
-                  B: '/image/grades/B.svg',
-                  C: '/image/grades/C.svg',
-                  D: '/image/grades/D.svg',
-                  F: '/image/grades/F.svg',
-                };
-                return map[activity.scorerank!] || map['F'];
-              })()}
-              alt={activity.scorerank}
-              className="w-5 h-5"
-            />
-          )}
-          {activity.mode && (
-            <span className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm">({activity.mode})</span>
-          )}
-        </div>
+        </span>
       );
-
     case 'rank_lost':
       return (
-        <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-          {username}
-          <span className="text-xs sm:text-sm">lost first place on</span>
-          <BeatmapLink
-            beatmapUrl={activity.beatmap?.url}
-            className="text-blue-400 hover:underline font-medium text-xs sm:text-sm"
-            title={activity.beatmap?.title}
-          >
+        <span>
+          {username}{' '}has lost first place on{' '}
+          <BeatmapLink beatmapUrl={activity.beatmap?.url} className="text-blue-400 hover:underline font-medium" title={activity.beatmap?.title}>
             {activity.beatmap?.title}
           </BeatmapLink>
-        </div>
+        </span>
       );
-
     case 'achievement':
       return (
-        <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-          {username}
-          <span className="text-xs sm:text-sm">unlocked the</span>
-          {activity.achievement && (
-            <>
-              <AchievementIcon
-                slug={activity.achievement.slug}
-                alt={activity.achievement.name || activity.achievement.slug}
-                className="w-4 h-4 sm:w-5 sm:h-5"
-              />
-              <span className="font-medium text-purple-400 text-xs sm:text-sm">
-                "{activity.achievement.name || activity.achievement.slug}"
-              </span>
-            </>
-          )}
-          <span className="text-xs sm:text-sm">medal!</span>
-        </div>
+        <span>
+          {username}{' '}unlocked the{' '}
+          <span className="font-medium text-purple-400">"{activity.achievement?.name || activity.achievement?.slug}"</span>
+          {' '}medal!
+        </span>
       );
-
     case 'beatmapset_upload':
       return (
-        <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-          {username}
-          <span className="text-xs sm:text-sm">submitted a new beatmap</span>
-          {activity.beatmap && (
-            <BeatmapLink
-              beatmapUrl={activity.beatmap.url}
-              className="text-blue-400 hover:underline font-medium text-xs sm:text-sm"
-              title={activity.beatmap.title}
-            >
-              {activity.beatmap.title}
-            </BeatmapLink>
-          )}
-        </div>
+        <span>
+          {username}{' '}submitted a new beatmap{' '}
+          <BeatmapLink beatmapUrl={activity.beatmap?.url} className="text-blue-400 hover:underline font-medium" title={activity.beatmap?.title}>
+            {activity.beatmap?.title}
+          </BeatmapLink>
+        </span>
       );
-
     case 'beatmapset_approve':
       return (
-        <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-          {username}
-          <span className="text-xs sm:text-sm">had their beatmap ranked</span>
-          {activity.beatmap && (
-            <BeatmapLink
-              beatmapUrl={activity.beatmap.url}
-              className="text-blue-400 hover:underline font-medium text-xs sm:text-sm"
-              title={activity.beatmap.title}
-            >
-              {activity.beatmap.title}
-            </BeatmapLink>
-          )}
-        </div>
+        <span>
+          {username}{' '}had their beatmap ranked{' '}
+          <BeatmapLink beatmapUrl={activity.beatmap?.url} className="text-blue-400 hover:underline font-medium" title={activity.beatmap?.title}>
+            {activity.beatmap?.title}
+          </BeatmapLink>
+        </span>
       );
-
     case 'beatmapset_revive':
       return (
-        <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-          {username}
-          <span className="text-xs sm:text-sm">revived their beatmap</span>
-          {activity.beatmap && (
-            <BeatmapLink
-              beatmapUrl={activity.beatmap.url}
-              className="text-blue-400 hover:underline font-medium text-xs sm:text-sm"
-              title={activity.beatmap.title}
-            >
-              {activity.beatmap.title}
-            </BeatmapLink>
-          )}
-        </div>
+        <span>
+          {username}{' '}revived their beatmap{' '}
+          <BeatmapLink beatmapUrl={activity.beatmap?.url} className="text-blue-400 hover:underline font-medium" title={activity.beatmap?.title}>
+            {activity.beatmap?.title}
+          </BeatmapLink>
+        </span>
       );
-
     case 'beatmapset_update':
       return (
-        <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-          {username}
-          <span className="text-xs sm:text-sm">updated their beatmap</span>
-          {activity.beatmap && (
-            <BeatmapLink
-              beatmapUrl={activity.beatmap.url}
-              className="text-blue-400 hover:underline font-medium text-xs sm:text-sm"
-              title={activity.beatmap.title}
-            >
-              {activity.beatmap.title}
-            </BeatmapLink>
-          )}
-        </div>
+        <span>
+          {username}{' '}updated their beatmap{' '}
+          <BeatmapLink beatmapUrl={activity.beatmap?.url} className="text-blue-400 hover:underline font-medium" title={activity.beatmap?.title}>
+            {activity.beatmap?.title}
+          </BeatmapLink>
+        </span>
       );
-
     case 'user_support_again':
-      return (
-        <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-          {username}
-          <span className="text-xs sm:text-sm">has once again chosen to support osu!</span>
-        </div>
-      );
-
+      return <span>{username}{' '}has once again chosen to support osu!</span>;
     case 'user_support_first':
-      return (
-        <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-          {username}
-          <span className="text-xs sm:text-sm">has become an osu! supporter!</span>
-        </div>
-      );
-
+      return <span>{username}{' '}has become an osu! supporter!</span>;
     case 'user_support_gift':
-      return (
-        <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-          {username}
-          <span className="text-xs sm:text-sm">received the gift of osu! supporter!</span>
-        </div>
-      );
-
+      return <span>{username}{' '}received the gift of osu! supporter!</span>;
     case 'username_change':
-      return (
-        <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-          {username}
-          <span className="text-xs sm:text-sm">changed their username!</span>
-        </div>
-      );
-
+      return <span>{username}{' '}changed their username!</span>;
     case 'userpageUpdate':
-      return (
-        <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-          {username}
-          <span className="text-xs sm:text-sm">updated their profile page.</span>
-        </div>
-      );
-
+      return <span>{username}{' '}updated their profile page.</span>;
     default:
-      return (
-        <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-          {username}
-          <span className="text-xs sm:text-sm">did something.</span>
-        </div>
-      );
+      return <span>{username}{' '}did something.</span>;
   }
 };
 
@@ -307,32 +175,15 @@ const UserRecentActivity: React.FC<UserRecentActivityProps> = ({ userId, classNa
   const loadActivities = async (reset = false) => {
     try {
       const currentOffset = reset ? 0 : offset;
-      
-      if (reset) {
-        setLoading(true);
-        setError(null);
-      } else {
-        setLoadingMore(true);
-      }
-
+      if (reset) { setLoading(true); setError(null); } else { setLoadingMore(true); }
       const response = await userAPI.getRecentActivity(userId, 6, currentOffset);
-      
-      // 假设 API 返回一个数组，没有 has_more 字段时，判断返回的数据是否小于请求的数量
       const newActivities = Array.isArray(response) ? response : [];
-      const hasMoreData = newActivities.length === 6; // 如果返回的数量等于请求的数量，可能还有更多
-
-      if (reset) {
-        setActivities(newActivities);
-        setOffset(newActivities.length);
-      } else {
-        setActivities(prev => [...prev, ...newActivities]);
-        setOffset(prev => prev + newActivities.length);
-      }
-
-      setHasMore(hasMoreData);
+      if (reset) { setActivities(newActivities); setOffset(newActivities.length); }
+      else { setActivities(prev => [...prev, ...newActivities]); setOffset(prev => prev + newActivities.length); }
+      setHasMore(newActivities.length === 6);
     } catch (err) {
       console.error('Failed to load user activities:', err);
-      setError('加载用户活动失败');
+      setError('Failed to load activities');
     } finally {
       setLoading(false);
       setLoadingMore(false);
@@ -340,127 +191,54 @@ const UserRecentActivity: React.FC<UserRecentActivityProps> = ({ userId, classNa
   };
 
   useEffect(() => {
-    if (userId) {
-      setOffset(0);
-      loadActivities(true);
-    }
+    if (userId) { setOffset(0); loadActivities(true); }
   }, [userId]);
 
-  const handleLoadMore = () => {
-    if (!loadingMore && hasMore) {
-      loadActivities(false);
-    }
-  };
+  const header = (
+    <div className="flex items-center gap-3 mb-4">
+      <div className="w-1 h-6 bg-osu-pink rounded-full" />
+      <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">{t('profile.activities.title')}</h3>
+    </div>
+  );
 
-  if (loading) {
-    return (
-      <div className={`${className}`}>
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-1 h-6 rounded-full" style={{ backgroundColor: profileColor }}></div>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-              {t('profile.activities.title')}
-            </h3>
-          </div>
-        </div>
-        <LoadingSpinner size="md" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className={`${className}`}>
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-1 h-6 rounded-full" style={{ backgroundColor: profileColor }}></div>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-              {t('profile.activities.title')}
-            </h3>
-          </div>
-        </div>
-        <div className="text-center text-red-500 dark:text-red-400 text-sm">
-          {error}
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <div className={className}>{header}<LoadingSpinner size="md" /></div>;
+  if (error) return <div className={className}>{header}<div className="text-center text-red-500 text-sm">{error}</div></div>;
 
   return (
-    <div className={`${className}`}>
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-3">
-          <div className="w-1 h-6 bg-osu-pink rounded-full"></div>
-          <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-            {t('profile.activities.title')}
-          </h3>
-        </div>
-      </div>
-      
+    <div className={className}>
+      {header}
       {activities.length === 0 ? (
         <div className="text-center text-gray-500 dark:text-gray-400 py-6 text-sm">
           {t('profile.activities.noActivities')}
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-1">
           {activities.map((activity) => (
-            <div 
-              key={activity.id} 
-              className="flex items-start gap-2 p-2 rounded border border-gray-200/50 dark:border-gray-600/30"
+            <div
+              key={activity.id}
+              className="flex items-center gap-3 py-2 px-2 rounded border border-gray-200/50 dark:border-gray-600/30"
             >
-              <div className="flex-shrink-0 mt-0.5">
-                {getActivityIcon(activity.type)}
+              <div className="flex-shrink-0 w-6 h-6 flex items-center justify-center">
+                {getActivityIcon(activity)}
               </div>
-              
-              <div className="flex-grow min-w-0">
-                <div className="text-gray-900 dark:text-gray-100">
-                  {getActivityDescription(activity, profileColor)}
-                </div>
-                {/* 手机端时间显示在描述下方 */}
-                <div className="flex items-center gap-2 mt-1 sm:hidden">
-                  {activity.mode && (
-                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200">
-                      {activity.mode}
-                    </span>
-                  )}
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                    {formatTimeAgo(activity.createdAt, t)}
-                  </div>
-                </div>
+              <div className="flex-grow min-w-0 text-sm text-gray-900 dark:text-gray-100">
+                {getActivityDescription(activity, profileColor)}
               </div>
-
-              {/* 桌面端时间显示在右侧 */}
-              <div className="flex-shrink-0 items-center gap-2 hidden sm:flex">
-                {activity.mode && (
-                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200">
-                    {activity.mode}
-                  </span>
-                )}
-                <div className="text-xs text-gray-500 dark:text-gray-400">
-                  {formatTimeAgo(activity.createdAt, t)}
-                </div>
+              <div className="flex-shrink-0 flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+                {activity.mode && <span>{activity.mode}</span>}
+                <span className="whitespace-nowrap">{formatTimeAgo(activity.createdAt, t)}</span>
               </div>
             </div>
           ))}
-
           {hasMore && (
             <div className="flex justify-center pt-2">
               <button
-                onClick={handleLoadMore}
+                onClick={() => { if (!loadingMore && hasMore) loadActivities(false); }}
                 disabled={loadingMore}
-                className="min-w-[80px] sm:min-w-[100px] h-[32px] px-3 py-1.5 disabled:bg-gray-400 text-white rounded text-xs sm:text-sm transition-colors flex items-center justify-center gap-1.5"
+                className="min-w-[100px] h-[32px] px-3 py-1.5 disabled:bg-gray-400 text-white rounded text-sm transition-colors flex items-center justify-center gap-1.5"
                 style={{ backgroundColor: loadingMore ? undefined : profileColor }}
-                onMouseEnter={(e) => !loadingMore && (e.currentTarget.style.opacity = '0.9')}
-                onMouseLeave={(e) => !loadingMore && (e.currentTarget.style.opacity = '1')}
               >
-                {loadingMore ? (
-                  <>
-                    <LoadingSpinner size="sm" />
-                    <span>加载中...</span>
-                  </>
-                ) : (
-                  <span>{t('profile.activities.loadMore')}</span>
-                )}
+                {loadingMore ? <><LoadingSpinner size="sm" /><span>Loading...</span></> : <span>{t('profile.activities.loadMore')}</span>}
               </button>
             </div>
           )}
