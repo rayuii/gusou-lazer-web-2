@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { formatNumber } from '../utils/format';
-import { api } from '../utils/client';
+import { formatNumber } from '../../utils/format';
+import { api } from '../../utils/client';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 // Matches ScoreModel with DEFAULT_SCORE_INCLUDES from the backend.
