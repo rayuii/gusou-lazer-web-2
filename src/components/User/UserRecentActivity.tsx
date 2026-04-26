@@ -61,22 +61,6 @@ const AchievementIcon: React.FC<{ slug: string; alt: string; className?: string 
   );
 };
 
-// 评级图标映射
-const getRankIcon = (rank: string) => {
-  const rankImageMap: Record<string, string> = {
-    'SSH': '/image/grades/SS-Silver.svg',  // SS-Silver
-    'SS': '/image/grades/SS.svg',
-    'SH': '/image/grades/S-Silver.svg',   // S-Silver
-    'S': '/image/grades/S.svg',
-    'A': '/image/grades/A.svg',
-    'B': '/image/grades/B.svg',
-    'C': '/image/grades/C.svg',
-    'D': '/image/grades/D.svg',
-    'F': '/image/grades/F.svg',
-  };
-  return rankImageMap[rank] || rankImageMap['F'];
-};
-
 // 活动类型图标映射
 const getActivityIcon = (type: string) => {
   const iconClass = "w-3 h-3";
