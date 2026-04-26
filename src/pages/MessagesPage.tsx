@@ -1838,45 +1838,31 @@ const MessagesPage: React.FC = () => {
                       onClick={async () => {
                         console.log('手动刷新频道列表');
                         try {
-                          const channels = await chatAPI.getChannels();
-                          console.log('手动刷新后的频道列表:', channels);
-                          const pmChannels = channels.filter((ch: ChatChannel) => ch.type === 'PM');
-                          console.log('手动刷新后的私聊频道数量:', pmChannels.length);
-                          if (pmChannels.length > 0) {
-                            console.log('私聊频道详情:', pmChannels.map((ch: ChatChannel) => ({ 
-                              id: ch.channel_id, 
-                              name: ch.name, 
-                              type: ch.type,
-                              users: ch.users 
-                            })));
-                          }
+                          const rawChannels = await chatAPI.getChannels();
+                          console.log('手动刷新后的频道列表:', rawChannels);
                           
-                          // 重新排序频道：倒序排列，频道在前，最下面是第一个
-                          const sortedChannels = channels.sort((a: ChatChannel, b: ChatChannel) => {
-                            // 优先级：公共频道 > 私聊 > 团队 > 私有
+                          const enriched = await enrichChannelsWithUserInfo(rawChannels);  // ← add this
+                          
+                          const pmChannels = enriched.filter((ch: ChatChannel) => ch.type === 'PM');
+                          console.log('手动刷新后的私聊频道数量:', pmChannels.length);
+
+                          const sortedChannels = enriched.sort((a: ChatChannel, b: ChatChannel) => {
                             const typeOrder: Record<string, number> = { 'PUBLIC': 0, 'PM': 1, 'TEAM': 2, 'PRIVATE': 3 };
                             const aOrder = typeOrder[a.type] || 4;
                             const bOrder = typeOrder[b.type] || 4;
-                            
-                            if (aOrder !== bOrder) {
-                              // 倒序排列：较大的 order 值在前
-                              return bOrder - aOrder;
-                            }
-                            
-                            // 同类型内按名称倒序排列
+                            if (aOrder !== bOrder) return bOrder - aOrder;
                             return b.name.localeCompare(a.name);
                           });
-                          
+
                           setChannels(sortedChannels);
-                          
-                          // 清理重复的私聊频道
+
                           setTimeout(() => {
                             cleanupDuplicatePrivateChannels();
                           }, 100);
-                          
+
                           toast.success(
                             t('messages.toasts.refreshChannelsSuccess', {
-                              total: channels.length,
+                              total: sortedChannels.length,
                               privateCount: pmChannels.length,
                             })
                           );
