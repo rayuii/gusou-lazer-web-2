@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { userAPI } from '../../utils/api';
-import type { GameMode, User } from '../../types';
+import type { User } from '../../types';
 import { useProfileColor } from '../../contexts/ProfileColorContext';
 import LoadingSpinner from '../UI/LoadingSpinner';
 import LazyBackgroundImage from '../UI/LazyBackgroundImage';

@@ -101,13 +101,6 @@ const SectionHeader: React.FC<{ title: string; count?: number | string }> = ({ t
   </div>
 );
 
-const UnderConstruction: React.FC<{ label: string }> = ({ label }) => (
-  <div className="flex flex-col items-center justify-center py-20 text-gray-400 dark:text-gray-600 gap-3">
-    <div className="text-4xl">🚧</div>
-    <p className="text-sm">{label} — coming soon</p>
-  </div>
-);
-
 const DEFAULT_PROFILE_ORDER = ['me', 'recent_activity', 'top_ranks', 'medals', 'historical', 'beatmaps'];
 
 const getRankingTier = (globalRank?: number, globalRankPercent?: number) => {
