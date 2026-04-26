@@ -488,17 +488,16 @@ const ScorePage: React.FC = () => {
             )}
             <div style={{ position: 'relative', zIndex: 1, padding: '10px 12px' }}>
               <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                <div style={{ position: 'relative', flexShrink: 0, width: 44, height: 44 }}>
+                <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
                   <img
                     src={user.avatar_url}
                     alt={user.username}
                     style={{ width: 44, height: 44, borderRadius: 8, objectFit: 'cover', border: '2px solid rgba(255,255,255,0.15)', display: 'block' }}
                   />
                   <div style={{
-                    position: 'absolute', bottom: -5, left: -5,
                     width: 14, height: 14, borderRadius: '50%',
                     border: `2.5px solid ${user.is_online ? '#4caf50' : '#666'}`,
-                    background: '#1a1a1a',
+                    background: 'transparent',
                   }} />
                 </div>
                 <div style={{ minWidth: 0 }}>
