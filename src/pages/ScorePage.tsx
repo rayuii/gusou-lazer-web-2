@@ -334,13 +334,7 @@ const ScorePage: React.FC = () => {
           <span style={{ fontWeight: 400, color: 'rgba(255,255,255,0.6)' }}>by {bms.artist || '—'}</span>
         </div>
         <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{
-            width: 22, height: 22, borderRadius: '50%',
-            background: 'rgba(255,105,180,0.3)',
-            border: '1.5px solid rgba(255,105,180,0.6)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 11,
-          }}>●</div>
+          <i className="fa-extra-mode-osu text-xl transition-colors duration-200" style={{ color: 'white' }} />
           <span style={{
             background: 'rgba(255,215,0,0.15)',
             border: '1px solid rgba(255,215,0,0.4)',
