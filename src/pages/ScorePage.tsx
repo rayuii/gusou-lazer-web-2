@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { scoreAPI } from '../utils/api'; // adjust import path
+import { scoreAPI } from '../utils/api';
 
 const ScorePage: React.FC = () => {
   const { scoreId } = useParams<{ scoreId: string }>();
@@ -21,11 +21,14 @@ const ScorePage: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto p-6">
       {/* Beatmap header */}
-      <div className="bg-card rounded-xl p-6 mb-4"
-        style={{ backgroundImage: `url(${score.beatmapset?.covers?.cover})`, backgroundSize: 'cover' }}>
+      <div
+        className="bg-card rounded-xl p-6 mb-4"
+        style={{ backgroundImage: `url(${score.beatmapset?.covers?.cover})`, backgroundSize: 'cover' }}
+      >
         <div className="bg-black/60 rounded-lg p-4">
           <h1 className="text-2xl font-bold text-white">
-            {score.beatmapset?.title} <span className="text-gray-300 font-normal">by {score.beatmapset?.artist}</span>
+            {score.beatmapset?.title}{' '}
+            <span className="text-gray-300 font-normal">by {score.beatmapset?.artist}</span>
           </h1>
           <p className="text-gray-300 mt-1">
             {score.beatmap?.difficulty_rating}★ {score.beatmap?.version} mapped by {score.beatmapset?.creator}
@@ -75,7 +78,7 @@ const ScorePage: React.FC = () => {
       </div>
 
       {/* Download replay */}
-      
+      <a
         href={`/api/v2/scores/${scoreId}/download`}
         className="inline-flex items-center gap-2 px-6 py-3 bg-osu-pink text-white rounded-lg hover:bg-osu-pink/90 transition-colors"
       >
