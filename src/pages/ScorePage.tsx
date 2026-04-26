@@ -125,7 +125,7 @@ const GradeLadder: React.FC<{ active: string; hasSilver?: boolean }> = ({ active
   );
 };
 
-// Mod background colors (matches osu! website)
+// DELETE these lines (the first duplicate):
 const MOD_COLORS: Record<string, string> = {
   EZ: '#5cb85c', NF: '#5cb85c', HT: '#5cb85c', DC: '#5cb85c',
   HR: '#d9534f', SD: '#d9534f', PF: '#d9534f', DT: '#d9534f',
@@ -134,16 +134,6 @@ const MOD_COLORS: Record<string, string> = {
   MR: '#f0ad4e', RD: '#f0ad4e', AL: '#f0ad4e', SG: '#f0ad4e',
   SO: '#f0ad4e',
   CL: '#777', CS: '#777', AS: '#777',
-};
-
-// Mod background colors (matches osu! website)
-const MOD_COLORS: Record<string, string> = {
-  EZ: '#5cb85c', NF: '#5cb85c', HT: '#5cb85c', DC: '#5cb85c',
-  HR: '#d9534f', SD: '#d9534f', PF: '#d9534f', DT: '#d9534f',
-  NC: '#d9534f', HD: '#d9534f', FL: '#d9534f', AC: '#d9534f',
-  RX: '#428bca', AP: '#428bca', AT: '#428bca', CN: '#428bca',
-  MR: '#f0ad4e', RD: '#f0ad4e', AL: '#f0ad4e', SG: '#f0ad4e',
-  SO: '#f0ad4e', CL: '#777', CS: '#777', AS: '#777',
 };
 
 // Acronym → osu! mod SVG filename mapping
