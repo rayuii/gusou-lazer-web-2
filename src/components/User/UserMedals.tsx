@@ -83,7 +83,7 @@ const UserMedals: React.FC<UserMedalsProps> = ({ userAchievements, className = '
   const [medals, setMedals] = useState<MedalInfo[]>([]);
 
   useEffect(() => {
-    fetch('/api/v2/medals')
+    fetch('https://lazer-api.rinarii.de/api/v2/medals')
       .then(r => r.json())
       .then(setMedals)
       .catch(() => {});

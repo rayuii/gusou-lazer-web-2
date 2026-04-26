@@ -172,7 +172,7 @@ const HowToJoinPage: React.FC = () => {
                       <div className="max-w-lg">
                         <CodeSnippet 
                           label="Server Address"
-                          text="lazer-api.g0v0.top" 
+                          text="lazer-api.rinarii.de" 
                         />
                       </div>
                       {/* Character pointing to copy button - absolute positioned */}
@@ -308,11 +308,11 @@ const HowToJoinPage: React.FC = () => {
                   <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-5 border border-gray-200 dark:border-gray-700 grid gap-4">
                      <CodeSnippet 
                         label={t('howToJoin.method2.steps.step3.apiUrl')}
-                        text="https://lazer-api.g0v0.top"
+                        text="https://lazer-api.rinarii.de"
                      />
                      <CodeSnippet 
                         label={t('howToJoin.method2.steps.step3.websiteUrl')}
-                        text="https://lazer.g0v0.top"
+                        text="https://lazer.rinarii.de"
                      />
                   </div>
                 </StepItem>

@@ -1,6 +1,6 @@
 export const common = {
-  brandName: 'g0v0!',
-  brandAlt: 'g0v0! logo',
+  brandName: 'Rinari Lazer',
+  brandAlt: 'Rinari Lazer logo',
   language: {
     label: 'Language',
     switch: 'Switch to {{language}}',
