@@ -48,9 +48,12 @@ const UserInfoBar: React.FC<UserInfoBarProps> = ({ user }) => {
           </span>
         )}
         {user.last_visit && (
-          <span>
-            Last seen <span className="font-semibold text-gray-700 dark:text-gray-200">{formatLastSeen(user.last_visit)}</span>
-          </span>
+            <span>
+                {user.is_online
+                ? <span className="font-semibold text-gray-700 dark:text-gray-200">Currently online</span>
+                : <>Last seen <span className="font-semibold text-gray-700 dark:text-gray-200">{formatLastSeen(user.last_visit)}</span></>
+                }
+            </span>
         )}
         {playstyleLabel && (
           <span>

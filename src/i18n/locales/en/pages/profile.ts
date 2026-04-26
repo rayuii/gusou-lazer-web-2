@@ -107,7 +107,7 @@ export const profilePage = {
       loading: 'Loading...',
     },
     userPage: {
-      title: 'Personal Introduction',
+      title: 'me!',
       noContent: 'No personal introduction written yet',
       writeButton: 'Write Personal Introduction',
       editButton: 'Edit',
