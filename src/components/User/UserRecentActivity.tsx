@@ -106,82 +106,81 @@ const getActivityIcon = (type: string) => {
 };
 
 // 获取活动描述
-const getActivityDescription = (activity: UserActivity, t: any) => {
+const getActivityDescription = (activity: UserActivity, t: any, profileColor: string) => {
+  const username = (
+    <span className="font-medium" style={{ color: profileColor }}>
+      {activity.user?.username}
+    </span>
+  );
+
   switch (activity.type) {
     case 'rank':
       return (
         <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-          <span className="text-xs sm:text-sm">{t('profile.activities.types.rank.prefix')}</span>
+          {username}
+          <span className="text-xs sm:text-sm">achieved rank</span>
+          {activity.rank && (
+            <span className="font-bold text-yellow-400 text-xs sm:text-sm">#{activity.rank}</span>
+          )}
+          <span className="text-xs sm:text-sm">on</span>
           <BeatmapLink
             beatmapUrl={activity.beatmap?.url}
-            className="text-blue-600 dark:text-blue-400 hover:underline font-medium text-xs sm:text-sm truncate max-w-[120px] sm:max-w-none"
+            className="text-blue-400 hover:underline font-medium text-xs sm:text-sm"
             title={activity.beatmap?.title}
           >
             {activity.beatmap?.title}
           </BeatmapLink>
-          <span className="text-xs sm:text-sm">{t('profile.activities.types.rank.middle')}</span>
-          {activity.scorerank && (
-            <img 
-              src={getRankIcon(activity.scorerank || 'C')} 
-              alt={activity.scorerank}
-              className="w-5 h-5"
-            />
-          )}
-          <span className="text-xs sm:text-sm">{t('profile.activities.types.rank.grade')}</span>
-          {activity.rank && (
-            <>
-              <span className="text-xs sm:text-sm">{t('profile.activities.types.rank.rankPrefix')}</span>
-              <span className="font-bold text-yellow-600 dark:text-yellow-400 text-xs sm:text-sm">#{activity.rank}</span>
-            </>
+          {activity.mode && (
+            <span className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm">({activity.mode})</span>
           )}
         </div>
       );
+
     case 'rank_lost':
       return (
         <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-          <span className="text-xs sm:text-sm">{t('profile.activities.types.rankLost.prefix')}</span>
+          {username}
+          <span className="text-xs sm:text-sm">lost first place on</span>
           <BeatmapLink
             beatmapUrl={activity.beatmap?.url}
-            className="text-blue-600 dark:text-blue-400 hover:underline font-medium text-xs sm:text-sm truncate max-w-[120px] sm:max-w-none"
+            className="text-blue-400 hover:underline font-medium text-xs sm:text-sm"
             title={activity.beatmap?.title}
           >
             {activity.beatmap?.title}
           </BeatmapLink>
-          <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">{t('profile.activities.types.rankLost.suffix')}</span>
         </div>
       );
+
     case 'achievement':
       return (
         <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-          <span className="text-xs sm:text-sm">{t('profile.activities.types.achievement')}</span>
+          {username}
+          <span className="text-xs sm:text-sm">unlocked the</span>
           {activity.achievement && (
             <>
-              <AchievementIcon 
+              <AchievementIcon
                 slug={activity.achievement.slug}
                 alt={activity.achievement.name || activity.achievement.slug}
                 className="w-4 h-4 sm:w-5 sm:h-5"
               />
-              <a
-                href={`https://inex.osekai.net/medals/${activity.achievement.name || activity.achievement.slug}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-medium text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 hover:underline text-xs sm:text-sm truncate max-w-[100px] sm:max-w-none"
-                title={activity.achievement.name || activity.achievement.slug}
-              >
-                {activity.achievement.name || activity.achievement.slug}
-              </a>
+              <span className="font-medium text-purple-400 text-xs sm:text-sm">
+                "{activity.achievement.name || activity.achievement.slug}"
+              </span>
             </>
           )}
+          <span className="text-xs sm:text-sm">medal!</span>
         </div>
       );
+
     case 'beatmapset_upload':
       return (
         <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-          <span className="text-xs sm:text-sm">{t('profile.activities.types.beatmapUpload')}</span>
+          {username}
+          <span className="text-xs sm:text-sm">submitted a new beatmap</span>
           {activity.beatmap && (
             <BeatmapLink
               beatmapUrl={activity.beatmap.url}
-              className="text-blue-600 dark:text-blue-400 hover:underline font-medium text-xs sm:text-sm truncate max-w-[120px] sm:max-w-none"
+              className="text-blue-400 hover:underline font-medium text-xs sm:text-sm"
               title={activity.beatmap.title}
             >
               {activity.beatmap.title}
@@ -189,14 +188,16 @@ const getActivityDescription = (activity: UserActivity, t: any) => {
           )}
         </div>
       );
+
     case 'beatmapset_approve':
       return (
         <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-          <span className="text-xs sm:text-sm">{t('profile.activities.types.beatmapRanked')}:</span>
+          {username}
+          <span className="text-xs sm:text-sm">had their beatmap ranked</span>
           {activity.beatmap && (
             <BeatmapLink
               beatmapUrl={activity.beatmap.url}
-              className="text-blue-600 dark:text-blue-400 hover:underline font-medium text-xs sm:text-sm truncate max-w-[120px] sm:max-w-none"
+              className="text-blue-400 hover:underline font-medium text-xs sm:text-sm"
               title={activity.beatmap.title}
             >
               {activity.beatmap.title}
@@ -204,16 +205,88 @@ const getActivityDescription = (activity: UserActivity, t: any) => {
           )}
         </div>
       );
-    case 'username_change':
-      return <span className="text-xs sm:text-sm">{t('profile.activities.types.usernameChange')}</span>;
+
+    case 'beatmapset_revive':
+      return (
+        <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+          {username}
+          <span className="text-xs sm:text-sm">revived their beatmap</span>
+          {activity.beatmap && (
+            <BeatmapLink
+              beatmapUrl={activity.beatmap.url}
+              className="text-blue-400 hover:underline font-medium text-xs sm:text-sm"
+              title={activity.beatmap.title}
+            >
+              {activity.beatmap.title}
+            </BeatmapLink>
+          )}
+        </div>
+      );
+
+    case 'beatmapset_update':
+      return (
+        <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+          {username}
+          <span className="text-xs sm:text-sm">updated their beatmap</span>
+          {activity.beatmap && (
+            <BeatmapLink
+              beatmapUrl={activity.beatmap.url}
+              className="text-blue-400 hover:underline font-medium text-xs sm:text-sm"
+              title={activity.beatmap.title}
+            >
+              {activity.beatmap.title}
+            </BeatmapLink>
+          )}
+        </div>
+      );
+
     case 'user_support_again':
-      return <span className="text-xs sm:text-sm">{t('profile.activities.types.supportAgain')}</span>;
+      return (
+        <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+          {username}
+          <span className="text-xs sm:text-sm">has once again chosen to support osu!</span>
+        </div>
+      );
+
     case 'user_support_first':
-      return <span className="text-xs sm:text-sm">{t('profile.activities.types.supportFirst')}</span>;
+      return (
+        <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+          {username}
+          <span className="text-xs sm:text-sm">has become an osu! supporter!</span>
+        </div>
+      );
+
     case 'user_support_gift':
-      return <span className="text-xs sm:text-sm">{t('profile.activities.types.supportGift')}</span>;
+      return (
+        <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+          {username}
+          <span className="text-xs sm:text-sm">received the gift of osu! supporter!</span>
+        </div>
+      );
+
+    case 'username_change':
+      return (
+        <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+          {username}
+          <span className="text-xs sm:text-sm">changed their username!</span>
+        </div>
+      );
+
+    case 'userpageUpdate':
+      return (
+        <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+          {username}
+          <span className="text-xs sm:text-sm">updated their profile page.</span>
+        </div>
+      );
+
     default:
-      return <span className="text-xs sm:text-sm">{t('profile.activities.types.activity')}</span>;
+      return (
+        <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+          {username}
+          <span className="text-xs sm:text-sm">did something.</span>
+        </div>
+      );
   }
 };
 
@@ -337,7 +410,7 @@ const UserRecentActivity: React.FC<UserRecentActivityProps> = ({ userId, classNa
               
               <div className="flex-grow min-w-0">
                 <div className="text-gray-900 dark:text-gray-100">
-                  {getActivityDescription(activity, t)}
+                  {getActivityDescription(activity, t, profileColor)}
                 </div>
                 {/* 手机端时间显示在描述下方 */}
                 <div className="flex items-center gap-2 mt-1 sm:hidden">
