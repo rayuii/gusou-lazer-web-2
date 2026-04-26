@@ -224,6 +224,14 @@ export const userAPI = {
     });
     return response.data;
   },
+  
+  getMostPlayedBeatmaps: async (userId: number, limit: number = 10, offset: number = 0) => {
+    const params = new URLSearchParams();
+    params.append('limit', limit.toString());
+    params.append('offset', offset.toString());
+    const response = await api.get(`/api/v2/users/${userId}/beatmapsets/most_played?${params.toString()}`);
+    return response.data;
+  },
 
   getRecentScores: async (
     userId: number,
