@@ -109,6 +109,13 @@
   font-weight: 700;
   font-display: swap;
 }
+@font-face {
+  font-family: 'Extra';
+  src: url('/fonts/extra.96448ca7.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
 
 /* 游戏模式图标字体样式 */
 .fa-extra-mode-osu::before {
