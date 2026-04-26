@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useProfileColor } from '../../contexts/ProfileColorContext';
 import { userAPI } from '../../utils/api';
 import LoadingSpinner from '../UI/LoadingSpinner';
