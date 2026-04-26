@@ -487,22 +487,24 @@ const ScorePage: React.FC = () => {
               }} />
             )}
             <div style={{ position: 'relative', zIndex: 1, padding: '10px 12px' }}>
-              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+              <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                {/* left col: avatar + ring */}
                 <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
                   <img
                     src={user.avatar_url}
                     alt={user.username}
-                    style={{ width: 44, height: 44, borderRadius: 8, objectFit: 'cover', border: '2px solid rgba(255,255,255,0.15)', display: 'block' }}
+                    style={{ width: 52, height: 52, borderRadius: 8, objectFit: 'cover', border: '2px solid rgba(255,255,255,0.15)', display: 'block' }}
                   />
                   <div style={{
-                    width: 40, height: 40, borderRadius: '50%',
-                    border: `3px solid ${user.is_online ? '#4caf50' : '#666'}`,
+                    width: 23, height: 23, borderRadius: '50%',
+                    border: `3px solid ${user.is_online ? '#4caf50' : '#555'}`,
                     background: 'transparent',
                   }} />
                 </div>
-                <div style={{ minWidth: 0 }}>
-                  {/* flags row */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>
+                {/* right col: flags aligned to top of avatar, then username, then status aligned to ring */}
+                <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: 52 + 5 + 23 }}>
+                  {/* flags — top */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                     {flagUrl && (
                       <img
                         src={flagUrl}
@@ -523,14 +525,11 @@ const ScorePage: React.FC = () => {
                       <span style={{ fontSize: 12, lineHeight: 1 }}>💗</span>
                     )}
                   </div>
-                  {/* username */}
-                  <div style={{ fontSize: 15, fontWeight: 800, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: 2 }}>{user.username}</div>
-                  {/* last seen */}
-                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>
+                  {/* username — middle */}
+                  <div style={{ fontSize: 15, fontWeight: 800, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.username}</div>
+                  {/* status — aligned to ring bottom */}
+                  <div style={{ fontSize: 11, color: user.is_online ? '#4caf50' : 'rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center', height: 23 }}>
                     {user.is_online ? 'Online' : `Last seen ${user.last_visit ? new Date(user.last_visit).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}`}
-                  </div>
-                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>
-                    {user.is_online ? '' : 'Offline'}
                   </div>
                 </div>
               </div>
