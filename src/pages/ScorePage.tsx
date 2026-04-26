@@ -201,7 +201,7 @@ const ModIcon: React.FC<{ mod: any }> = ({ mod }) => {
         style={{ height: 32, width: 'auto', objectFit: 'contain' }}
         onError={(e) => {
           // fall back to painted blank icon
-          (e.currentTarget as HTMLImageElement).src = '../image/mods/blanks/mod-icon.svg';
+          (e.currentTarget as HTMLImageElement).src = 'image/mods/blanks/mod-icon.svg';
           (e.currentTarget as HTMLImageElement).style.filter = 'hue-rotate(30deg) saturate(2)';
         }}
       />
@@ -467,7 +467,7 @@ const ScorePage: React.FC = () => {
       </div>
 
       {/* ── bottom: user card + stats ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: 12, alignItems: 'start' }}>
 
         {/* user card */}
         <Link to={`/users/${user.id}`} style={{ textDecoration: 'none' }}>
@@ -475,7 +475,6 @@ const ScorePage: React.FC = () => {
             borderRadius: 12, overflow: 'hidden',
             background: 'rgba(255,255,255,0.05)',
             border: '1px solid rgba(255,255,255,0.08)',
-            height: '100%',
             position: 'relative',
           }}>
             {/* user profile cover as background */}
@@ -492,11 +491,11 @@ const ScorePage: React.FC = () => {
                 <img
                   src={user.avatar_url}
                   alt={user.username}
-                  style={{ width: 48, height: 48, borderRadius: 8, objectFit: 'cover', border: '2px solid rgba(255,255,255,0.2)', flexShrink: 0 }}
+                  style={{ width: 44, height: 44, borderRadius: 8, objectFit: 'cover', border: '2px solid rgba(255,255,255,0.15)', flexShrink: 0 }}
                 />
                 <div style={{ minWidth: 0 }}>
-                  {/* country flag + team flag */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4 }}>
+                  {/* flags row */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>
                     {flagUrl && (
                       <img
                         src={flagUrl}
@@ -510,22 +509,22 @@ const ScorePage: React.FC = () => {
                         src={teamFlagUrl}
                         alt={user.team?.short_name ?? ''}
                         title={user.team?.name ?? ''}
-                        style={{ height: 16, maxWidth: 36, objectFit: 'contain', borderRadius: 2 }}
+                        style={{ height: 15, maxWidth: 34, objectFit: 'contain', borderRadius: 2 }}
                       />
                     )}
                     {user.is_supporter && (
-                      <span style={{ fontSize: 13, lineHeight: 1 }}>💗</span>
+                      <span style={{ fontSize: 12, lineHeight: 1 }}>💗</span>
                     )}
                   </div>
-                  <div style={{ fontSize: 16, fontWeight: 800, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.username}</div>
-                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.username}</div>
+                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>
                     {user.is_online ? (
                       <span style={{ color: '#4caf50' }}>● Online</span>
                     ) : (
-                      `Last seen ${user.last_visit ? new Date(user.last_visit).toLocaleDateString() : '—'}`
+                      <>Last seen {user.last_visit ? new Date(user.last_visit).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}</>
                     )}
                   </div>
-                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', marginTop: 1 }}>
+                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.22)', marginTop: 1 }}>
                     {user.is_online ? 'Online' : 'Offline'}
                   </div>
                 </div>
