@@ -40,6 +40,7 @@ export interface UserStatistics {
     progress: number;
   };
   global_rank?: number | null;
+  global_rank_percent?: number | null;
   country_rank?: number | null;
 }
 

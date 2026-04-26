@@ -148,7 +148,7 @@ const UserProfileLayout: React.FC<UserProfileLayoutProps> = ({ user, selectedMod
   } | null>(null);
 
   const stats = user.statistics_rulesets?.[selectedMode] ?? user.statistics;
-  const tier = getRankingTier(stats?.global_rank, stats?.global_rank_percent);
+  const tier = getRankingTier(stats?.global_rank ?? undefined, stats?.global_rank_percent ?? undefined);
   const gradeCounts = stats?.grade_counts ?? { ssh: 0, ss: 0, sh: 0, s: 0, a: 0 };
   const levelProgress = stats?.level?.progress ?? 0;
   const levelCurrent = stats?.level?.current ?? 0;
