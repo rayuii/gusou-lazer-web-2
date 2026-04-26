@@ -88,11 +88,25 @@
 }
 
 /* 导入 Extra 字体 */
+/* Torus font */
 @font-face {
-  font-family: 'Extra';
-  src: url('/fonts/extra.96448ca7.woff2') format('woff2');
-  font-weight: normal;
-  font-style: normal;
+  font-family: 'Torus';
+  src: url('/fonts/Torus-Light.otf') format('opentype');
+  font-weight: 300;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Torus';
+  src: url('/fonts/Torus-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Torus';
+  src: url('/fonts/Torus-Bold.otf') format('opentype');
+  font-weight: 700;
   font-display: swap;
 }
 
@@ -251,8 +265,7 @@ html, body {
   padding: 0;
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  font-family: 'Torus', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Scrollbar styling */
