@@ -89,18 +89,6 @@ const CoverImage: React.FC<{ src?: string; alt?: string; isExpanded: boolean }> 
   );
 };
 
-const SectionHeader: React.FC<{ title: string; count?: number | string }> = ({ title, count }) => (
-  <div className="flex items-center gap-3 mb-4">
-    <div className="w-1 h-5 rounded-full bg-osu-pink" />
-    <h3 className="text-base font-bold text-gray-900 dark:text-gray-100">{title}</h3>
-    {count !== undefined && (
-      <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full">
-        {count}
-      </span>
-    )}
-  </div>
-);
-
 const DEFAULT_PROFILE_ORDER = ['me', 'recent_activity', 'top_ranks', 'medals', 'historical', 'beatmaps'];
 
 const getRankingTier = (globalRank?: number, globalRankPercent?: number) => {
