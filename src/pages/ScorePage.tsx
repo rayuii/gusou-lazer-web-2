@@ -103,9 +103,9 @@ const GradeLadder: React.FC<{ active: string; hasSilver?: boolean }> = ({ active
         const isActive = rankCode === active || g === active;
         return (
           <div key={g} style={{
-            width: 28, height: 28, borderRadius: 6,
-            background: isActive ? gradeBg(rankCode) : 'rgba(255,255,255,0.04)',
-            border: `1.5px solid ${isActive ? gradeColor(rankCode) : 'rgba(255,255,255,0.1)'}`,
+            width: 38, height: 24, borderRadius: 5,
+            background: isActive ? gradeBg(rankCode) : 'rgba(255,255,255,0.06)',
+            border: `1.5px solid ${isActive ? gradeColor(rankCode) : 'rgba(255,255,255,0.2)'}`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             overflow: 'hidden',
           }}>
@@ -113,9 +113,9 @@ const GradeLadder: React.FC<{ active: string; hasSilver?: boolean }> = ({ active
               src={`../image/grades/${gradeFilename(rankCode)}.svg`}
               alt={g}
               style={{
-                width: 20, height: 20, objectFit: 'contain',
-                opacity: isActive ? 1 : 0.3,
-                filter: isActive ? `drop-shadow(0 0 4px ${gradeColor(rankCode)}88)` : 'none',
+                width: 28, height: 18, objectFit: 'contain',
+                opacity: isActive ? 1 : 0.5,
+                filter: isActive ? `drop-shadow(0 0 4px ${gradeColor(rankCode)}88)` : 'grayscale(0.3)',
               }}
             />
           </div>
@@ -487,22 +487,22 @@ const ScorePage: React.FC = () => {
                 filter: 'brightness(0.3)',
               }} />
             )}
-            <div style={{ position: 'relative', zIndex: 1, padding: 16 }}>
-              <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+            <div style={{ position: 'relative', zIndex: 1, padding: '10px 12px' }}>
+              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                 <img
                   src={user.avatar_url}
                   alt={user.username}
-                  style={{ width: 64, height: 64, borderRadius: 10, objectFit: 'cover', border: '2px solid rgba(255,255,255,0.2)' }}
+                  style={{ width: 48, height: 48, borderRadius: 8, objectFit: 'cover', border: '2px solid rgba(255,255,255,0.2)', flexShrink: 0 }}
                 />
-                <div>
+                <div style={{ minWidth: 0 }}>
                   {/* country flag + team flag */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4 }}>
                     {flagUrl && (
                       <img
                         src={flagUrl}
                         alt={user.country_code ?? ''}
                         title={user.country?.name ?? user.country_code}
-                        style={{ width: 20, height: 15, borderRadius: 2, objectFit: 'cover' }}
+                        style={{ width: 18, height: 13, borderRadius: 2, objectFit: 'cover' }}
                       />
                     )}
                     {teamFlagUrl && (
@@ -510,17 +510,23 @@ const ScorePage: React.FC = () => {
                         src={teamFlagUrl}
                         alt={user.team?.short_name ?? ''}
                         title={user.team?.name ?? ''}
-                        style={{ height: 18, maxWidth: 40, objectFit: 'contain', borderRadius: 2 }}
+                        style={{ height: 16, maxWidth: 36, objectFit: 'contain', borderRadius: 2 }}
                       />
                     )}
+                    {user.is_supporter && (
+                      <span style={{ fontSize: 13, lineHeight: 1 }}>💗</span>
+                    )}
                   </div>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: '#fff' }}>{user.username}</div>
-                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.username}</div>
+                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>
                     {user.is_online ? (
                       <span style={{ color: '#4caf50' }}>● Online</span>
                     ) : (
                       `Last seen ${user.last_visit ? new Date(user.last_visit).toLocaleDateString() : '—'}`
                     )}
+                  </div>
+                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', marginTop: 1 }}>
+                    {user.is_online ? 'Online' : 'Offline'}
                   </div>
                 </div>
               </div>
