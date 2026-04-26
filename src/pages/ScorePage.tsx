@@ -125,25 +125,63 @@ const GradeLadder: React.FC<{ active: string; hasSilver?: boolean }> = ({ active
   );
 };
 
-// DELETE these lines (the first duplicate):
 const MOD_COLORS: Record<string, string> = {
-  EZ: '#5cb85c', NF: '#5cb85c', HT: '#5cb85c', DC: '#5cb85c',
-  HR: '#d9534f', SD: '#d9534f', PF: '#d9534f', DT: '#d9534f',
-  NC: '#d9534f', HD: '#d9534f', FL: '#d9534f', AC: '#d9534f',
-  RX: '#428bca', AP: '#428bca', AT: '#428bca', CN: '#428bca',
-  MR: '#f0ad4e', RD: '#f0ad4e', AL: '#f0ad4e', SG: '#f0ad4e',
-  SO: '#f0ad4e',
-  CL: '#777', CS: '#777', AS: '#777',
+  // DifficultyReduction → lime-1 (hue 90)
+  EZ: 'hsl(90, 100%, 70%)',
+  NF: 'hsl(90, 100%, 70%)',
+  HT: 'hsl(90, 100%, 70%)',
+  DC: 'hsl(90, 100%, 70%)',
+  // DifficultyIncrease → red-1 (hue 360)
+  HR: 'hsl(360, 100%, 70%)',
+  SD: 'hsl(360, 100%, 70%)',
+  PF: 'hsl(360, 100%, 70%)',
+  DT: 'hsl(360, 100%, 70%)',
+  NC: 'hsl(360, 100%, 70%)',
+  HD: 'hsl(360, 100%, 70%)',
+  FL: 'hsl(360, 100%, 70%)',
+  AC: 'hsl(360, 100%, 70%)',
+  // Automation → blue-1 (hue 200)
+  RX: 'hsl(200, 100%, 70%)',
+  AP: 'hsl(200, 100%, 70%)',
+  AT: 'hsl(200, 100%, 70%)',
+  CN: 'hsl(200, 100%, 70%)',
+  // Conversion → purple-1 (hue 255)
+  MR: 'hsl(255, 100%, 70%)',
+  RD: 'hsl(255, 100%, 70%)',
+  AL: 'hsl(255, 100%, 70%)',
+  SG: 'hsl(255, 100%, 70%)',
+  DS: 'hsl(255, 100%, 70%)',
+  '1K': 'hsl(255, 100%, 70%)', '2K': 'hsl(255, 100%, 70%)', '3K': 'hsl(255, 100%, 70%)',
+  '4K': 'hsl(255, 100%, 70%)', '5K': 'hsl(255, 100%, 70%)', '6K': 'hsl(255, 100%, 70%)',
+  '7K': 'hsl(255, 100%, 70%)', '8K': 'hsl(255, 100%, 70%)', '9K': 'hsl(255, 100%, 70%)',
+  '10K': 'hsl(255, 100%, 70%)',
+  FI: 'hsl(255, 100%, 70%)',
+  CO: 'hsl(255, 100%, 70%)',
+  HO: 'hsl(255, 100%, 70%)',
+  IN: 'hsl(255, 100%, 70%)',
+  // Fun → pink-1 (hue 333)
+  BL: 'hsl(333, 100%, 70%)',
+  ST: 'hsl(333, 100%, 70%)',
+  DP: 'hsl(333, 100%, 70%)',
+  TC: 'hsl(333, 100%, 70%)',
+  BR: 'hsl(333, 100%, 70%)',
+  AD: 'hsl(333, 100%, 70%)',
+  MU: 'hsl(333, 100%, 70%)',
+  NS: 'hsl(333, 100%, 70%)',
+  MB: 'hsl(333, 100%, 70%)',
+  // System → yellow (hue 45)
+  SO: 'hsl(45, 100%, 70%)',
+  CL: 'hsl(45, 100%, 70%)',
+  SV2: 'hsl(45, 100%, 70%)',
+  AS: 'hsl(45, 100%, 70%)',
+  CS: 'hsl(45, 100%, 70%)',
 };
 
-// Acronym → osu! mod SVG filename mapping
 const MOD_FILENAMES: Record<string, string> = {
-  // Difficulty Reduction
   EZ: 'mod-easy',
   NF: 'mod-no-fail',
   HT: 'mod-half-time',
   DC: 'mod-daycore',
-  // Difficulty Increase
   HR: 'mod-hard-rock',
   SD: 'mod-sudden-death',
   PF: 'mod-perfect',
@@ -152,17 +190,14 @@ const MOD_FILENAMES: Record<string, string> = {
   HD: 'mod-hidden',
   FL: 'mod-flashlight',
   AC: 'mod-accuracy-challenge',
-  // Automation
   RX: 'mod-relax',
   AP: 'mod-autopilot',
   AT: 'mod-autoplay',
   CN: 'mod-cinema',
-  // Conversion
   MR: 'mod-mirror',
   RD: 'mod-random',
   AL: 'mod-alternate',
   SG: 'mod-single-tap',
-  // Fun
   BL: 'mod-blinds',
   ST: 'mod-strict-tracking',
   DP: 'mod-depth',
@@ -172,7 +207,6 @@ const MOD_FILENAMES: Record<string, string> = {
   MU: 'mod-muted',
   NS: 'mod-no-scope',
   MB: 'mod-magnetised',
-  // System
   SO: 'mod-spun-out',
   TR: 'mod-transform',
   WG: 'mod-wiggle',
@@ -184,10 +218,9 @@ const MOD_FILENAMES: Record<string, string> = {
   BU: 'mod-bubbles',
   SY: 'mod-synesthesia',
   CL: 'mod-classic',
-  SV2: 'mod-scroll-speed',
+  SV2: 'mod-score-v2',
   AS: 'mod-adaptive-speed',
   CS: 'mod-constant-speed',
-  // Mania specific
   '1K': 'mod-one-key', '2K': 'mod-two-keys', '3K': 'mod-three-keys',
   '4K': 'mod-four-keys', '5K': 'mod-five-keys', '6K': 'mod-six-keys',
   '7K': 'mod-seven-keys', '8K': 'mod-eight-keys', '9K': 'mod-nine-keys',
@@ -202,14 +235,14 @@ const MOD_FILENAMES: Record<string, string> = {
 const ModIcon: React.FC<{ mod: any }> = ({ mod }) => {
   const acronym: string = mod?.acronym ?? mod ?? '??';
   const filename = MOD_FILENAMES[acronym];
-  const bg = MOD_COLORS[acronym] ?? '#555';
+  const bg = MOD_COLORS[acronym] ?? 'hsl(45, 100%, 70%)';
 
   return (
     <div style={{ position: 'relative', width: 40, height: 40, flexShrink: 0 }} title={acronym}>
-      {/* color layer behind blank shape */}
+      {/* background shape filled with type colour */}
       <div style={{
         position: 'absolute', inset: 0,
-        background: bg,
+        backgroundColor: bg,
         WebkitMaskImage: 'url(../image/mods/blanks/mod-icon.svg)',
         WebkitMaskSize: 'contain',
         WebkitMaskRepeat: 'no-repeat',
@@ -219,17 +252,30 @@ const ModIcon: React.FC<{ mod: any }> = ({ mod }) => {
         maskRepeat: 'no-repeat',
         maskPosition: 'center',
       }} />
-      {/* actual mod symbol on top */}
-      {filename && (
-        <img
-          src={`../image/mods/${filename}.svg`}
-          alt={acronym}
-          style={{
-            position: 'absolute', inset: 0, width: '100%', height: '100%',
-            objectFit: 'contain',
-          }}
-          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-        />
+
+      {/* symbol layer: masked with dark fg, matching osu!'s ::after */}
+      {filename ? (
+        <div style={{
+          position: 'absolute', inset: 0,
+          backgroundColor: `color-mix(in srgb-linear, black, ${bg} 10%)`,
+          WebkitMaskImage: `url(../image/mods/${filename}.svg)`,
+          WebkitMaskSize: 'contain',
+          WebkitMaskRepeat: 'no-repeat',
+          WebkitMaskPosition: 'center',
+          maskImage: `url(../image/mods/${filename}.svg)`,
+          maskSize: 'contain',
+          maskRepeat: 'no-repeat',
+          maskPosition: 'center',
+        }} />
+      ) : (
+        <div style={{
+          position: 'absolute', inset: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          color: `color-mix(in srgb-linear, black, ${bg} 10%)`,
+          fontSize: 11, fontWeight: 900, lineHeight: 1,
+        }}>
+          {acronym}
+        </div>
       )}
     </div>
   );
