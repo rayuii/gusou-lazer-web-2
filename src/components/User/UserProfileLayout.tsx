@@ -22,8 +22,6 @@ import { useAuth } from '../../hooks/useAuth';
 import { useUserPreferences } from '../../hooks/useUserPreferences';
 import { useProfileColor } from '../../contexts/ProfileColorContext';
 
-type ProfileTab = 'me' | 'ranks' | 'medals' | 'historical' | 'beatmaps' | 'recent';
-
 interface UserProfileLayoutProps {
   user: User;
   selectedMode: GameMode;
@@ -66,10 +64,8 @@ const CoverImage: React.FC<{ src?: string; alt?: string; isExpanded: boolean }> 
     return () => io.disconnect();
   }, []);
 
-  const heightClass = isExpanded ? 'h-[180px] md:h-[288px]' : 'h-0';
-
   return (
-    <div ref={ref} className={`relative w-full overflow-hidden transition-all duration-300 ${heightClass}`}>
+    <div ref={ref} className={`relative w-full overflow-hidden transition-all duration-300 ${isExpanded ? 'h-[180px] md:h-[288px]' : 'h-0'}`}>
       <div className="absolute inset-0 cover-bg">
         <div className="h-full w-full" style={{ background: 'transparent' }} />
       </div>
@@ -89,17 +85,6 @@ const CoverImage: React.FC<{ src?: string; alt?: string; isExpanded: boolean }> 
   );
 };
 
-// Tab definitions
-const TABS: { id: ProfileTab; label: string }[] = [
-  { id: 'me', label: 'me!' },
-  { id: 'ranks', label: 'Ranks' },
-  { id: 'medals', label: 'Medals' },
-  { id: 'historical', label: 'Historical' },
-  { id: 'beatmaps', label: 'Beatmaps' },
-  { id: 'recent', label: 'Recent' },
-];
-
-// Section header shared component
 const SectionHeader: React.FC<{ title: string; count?: number | string }> = ({ title, count }) => (
   <div className="flex items-center gap-3 mb-4">
     <div className="w-1 h-5 rounded-full bg-osu-pink" />
@@ -112,7 +97,6 @@ const SectionHeader: React.FC<{ title: string; count?: number | string }> = ({ t
   </div>
 );
 
-// Under construction placeholder for unbuilt tabs
 const UnderConstruction: React.FC<{ label: string }> = ({ label }) => (
   <div className="flex flex-col items-center justify-center py-20 text-gray-400 dark:text-gray-600 gap-3">
     <div className="text-4xl">🚧</div>
@@ -120,13 +104,13 @@ const UnderConstruction: React.FC<{ label: string }> = ({ label }) => (
   </div>
 );
 
+const DEFAULT_PROFILE_ORDER = ['me', 'recent_activity', 'top_ranks', 'medals', 'historical', 'beatmaps'];
+
 const UserProfileLayout: React.FC<UserProfileLayoutProps> = ({ user, selectedMode, onModeChange, onUserUpdate }) => {
   const { t } = useTranslation();
   const { refreshUser, user: currentUser } = useAuth();
   const { preferences, updatePreference } = useUserPreferences();
   const { profileColor, setProfileColorLocal, resetProfileColor } = useProfileColor();
-
-  const [activeTab, setActiveTab] = useState<ProfileTab>('me');
 
   const pinnedScoresRefreshRef = useRef<(() => void) | null>(null);
   const bestScoresRefreshRef = useRef<(() => void) | null>(null);
@@ -143,6 +127,9 @@ const UserProfileLayout: React.FC<UserProfileLayoutProps> = ({ user, selectedMod
   const levelProgress = stats?.level?.progress ?? 0;
   const levelCurrent = stats?.level?.current ?? 0;
   const playTime = formatPlayTime(stats?.play_time);
+  const [isUpdatingMode] = useState(false);
+  const canEdit = currentUser?.id === user.id;
+
   const user_achievements = Array.isArray(user.user_achievements)
     ? user.user_achievements.filter(
         (a): a is { achievement_id: number; achieved_at: string } =>
@@ -157,9 +144,6 @@ const UserProfileLayout: React.FC<UserProfileLayoutProps> = ({ user, selectedMod
     coverUrlRaw === 'https://assets.ppy.sh/user-profile-covers/default.jpeg'
       ? '/image/backgrounds/bgcover.jpg'
       : coverUrlRaw;
-
-  const [isUpdatingMode] = useState(false);
-  const canEdit = currentUser?.id === user.id;
 
   useEffect(() => {
     const getViewedUserColor = () => {
@@ -184,13 +168,8 @@ const UserProfileLayout: React.FC<UserProfileLayoutProps> = ({ user, selectedMod
     }
   }, [preferences.profile_cover_expanded]);
 
-  const handleAvatarUpdate = async (newAvatarUrl: string) => {
-    console.log('头像更新成功，延迟刷新用户信息:', newAvatarUrl);
-    // 延迟刷新用户信息，确保服务器端已经处理完成
-    setTimeout(async () => {
-      console.log('执行延迟刷新用户信息');
-      await refreshUser();
-    }, 3000); // 延迟3秒，给服务器更多时间处理
+  const handleAvatarUpdate = async (_newAvatarUrl: string) => {
+    setTimeout(async () => { await refreshUser(); }, 3000);
   };
 
   const handleToggleCover = async () => {
@@ -199,23 +178,91 @@ const UserProfileLayout: React.FC<UserProfileLayoutProps> = ({ user, selectedMod
     if (canEdit) await updatePreference('profile_cover_expanded', newExpandedState);
   };
 
-  // Reset to me tab when mode changes
-  useEffect(() => {
-    setActiveTab('me');
-  }, [selectedMode]);
+  const profileOrder = user.profile_order ?? DEFAULT_PROFILE_ORDER;
+
+  const renderSection = (section: string) => {
+    switch (section) {
+      case 'me':
+        return (
+          <div key="me" className="px-3 md:px-6 lg:px-8 py-4 border-b border-card">
+            <UserPageDisplay user={user} onUserUpdate={onUserUpdate} />
+          </div>
+        );
+      case 'recent_activity':
+        return (
+          <div key="recent_activity" className="px-3 md:px-6 lg:px-8 py-4 border-b border-card">
+            <UserRecentActivity userId={user.id} />
+          </div>
+        );
+      case 'top_ranks':
+        return (
+          <div key="top_ranks">
+            <div className="px-3 md:px-6 lg:px-8 py-4 border-b border-card">
+              <UserPinnedScores
+                userId={user.id}
+                selectedMode={selectedMode}
+                user={user}
+                refreshRef={pinnedScoresRefreshRef}
+                onPinActionRef={pinActionRef}
+                bestScoresActionRef={bestScoresActionRef}
+              />
+            </div>
+            <div className="px-3 md:px-6 lg:px-8 py-4 border-b border-card">
+              <UserBestScores
+                userId={user.id}
+                selectedMode={selectedMode}
+                user={user}
+                refreshRef={bestScoresRefreshRef}
+                onPinnedListRefresh={() => pinnedScoresRefreshRef.current?.()}
+                pinActionRef={pinActionRef}
+                bestScoresActionRef={bestScoresActionRef}
+              />
+            </div>
+            <div className="px-3 md:px-6 lg:px-8 py-4 border-b border-card">
+              <SectionHeader title="First Place Ranks" count={user.scores_first_count ?? 0} />
+              <UnderConstruction label="First place ranks" />
+            </div>
+          </div>
+        );
+      case 'medals':
+        return (
+          <div key="medals" className="px-3 md:px-6 lg:px-8 py-4 border-b border-card">
+            <UserMedals userAchievements={user.user_achievements} />
+          </div>
+        );
+      case 'historical':
+        return (
+          <div key="historical">
+            <div className="px-3 md:px-6 lg:px-8 py-4 border-b border-card">
+              <UserRecentScores userId={user.id} selectedMode={selectedMode} user={user} />
+            </div>
+            <div className="px-3 md:px-6 lg:px-8 py-4 border-b border-card">
+              <UserHistorical userId={user.id} monthlyPlaycounts={user.monthly_playcounts} />
+            </div>
+          </div>
+        );
+      case 'beatmaps':
+        return (
+          <div key="beatmaps" className="px-3 md:px-6 lg:px-8 py-4 border-b border-card">
+            <SectionHeader title="Favourite Beatmaps" count={user.favourite_beatmapset_count ?? 0} />
+            <UnderConstruction label="Beatmaps" />
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <main className="max-w-7xl mx-auto px-0 md:px-4 lg:px-6 py-4 md:py-6">
       <div className="bg-card md:main-card-shadow md:rounded-t-2xl md:rounded-b-2xl overflow-hidden md:border md:border-card">
 
-        {/* Restricted banner */}
         {user.is_restricted && currentUser?.is_admin && (
           <div className="px-3 md:px-6 pt-4">
             <RestrictedBanner />
           </div>
         )}
 
-        {/* Top bar: title + mode selector */}
         <div className="relative">
           <div className="relative z-10 bg-transparent md:bg-card px-4 md:px-6 py-3 md:py-4 flex items-center justify-between md:rounded-t-2xl border-b border-card">
             <div className="flex items-center gap-3">
@@ -229,7 +276,6 @@ const UserProfileLayout: React.FC<UserProfileLayoutProps> = ({ user, selectedMod
           </div>
         </div>
 
-        {/* Avatar + username row */}
         <div className="bg-transparent md:bg-card px-3 md:px-8 py-4 md:py-6 flex items-center gap-4 md:gap-6 border-b border-card relative">
           <div className={isCoverExpanded ? '-mt-12' : 'mt-0'}>
             <Avatar
@@ -264,7 +310,7 @@ const UserProfileLayout: React.FC<UserProfileLayoutProps> = ({ user, selectedMod
                     data-tooltip-content={user.country?.name || ''}
                   />
                   <span className="text-gray-600 dark:text-gray-300 text-sm md:text-base">
-                    {user.country?.code}
+                    {user.country?.name}
                   </span>
                 </div>
               )}
@@ -280,7 +326,7 @@ const UserProfileLayout: React.FC<UserProfileLayoutProps> = ({ user, selectedMod
                     data-tooltip-content={user.team.name}
                   />
                   <span className="text-gray-600 dark:text-gray-300 text-sm md:text-base">
-                    {user.team.short_name || user.team.name}
+                    {user.team.name}
                   </span>
                 </div>
               )}
@@ -301,7 +347,6 @@ const UserProfileLayout: React.FC<UserProfileLayoutProps> = ({ user, selectedMod
         <Tooltip id="team-tooltip" />
         <Tooltip id="cover-toggle-tooltip" />
 
-        {/* Rank + chart + stats block — always visible above tabs */}
         <div className="bg-transparent md:bg-card px-3 md:px-6 py-4 border-b border-card">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-[3] flex flex-col gap-3">
@@ -341,7 +386,6 @@ const UserProfileLayout: React.FC<UserProfileLayoutProps> = ({ user, selectedMod
           </div>
         </div>
 
-        {/* Friends + level progress — always visible */}
         <div className="bg-transparent md:bg-card px-3 md:px-6 lg:px-8 py-4 md:py-6 relative border-b border-card">
           <div className="flex items-center justify-between relative">
             <FriendStats user={user} />
@@ -356,119 +400,10 @@ const UserProfileLayout: React.FC<UserProfileLayoutProps> = ({ user, selectedMod
           </div>
         </div>
 
-        {/* Tab navigation */}
-        <div className="bg-card border-b border-card sticky top-0 z-20">
-          <div className="flex overflow-x-auto scrollbar-hide">
-            {TABS.map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`
-                  px-4 md:px-6 py-3 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors duration-150
-                  ${activeTab === tab.id
-                    ? 'border-osu-pink text-osu-pink'
-                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
-                  }
-                `}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Tab content */}
         <div className="bg-card md:rounded-b-2xl">
-
-          {/* ── me! ── */}
-          {activeTab === 'me' && (
-            <div>
-              {/* Personal intro */}
-              <div className="px-3 md:px-6 lg:px-8 py-4 border-b border-card">
-                <UserPageDisplay user={user} onUserUpdate={onUserUpdate} />
-              </div>
-
-              {/* Recent activity */}
-              <div className="px-3 md:px-6 lg:px-8 py-4 border-b border-card">
-                <UserRecentActivity userId={user.id} />
-              </div>
-            </div>
-          )}
-
-          {/* ── Ranks ── */}
-          {activeTab === 'ranks' && (
-            <div>
-              {/* Pinned scores */}
-              <div className="px-3 md:px-6 lg:px-8 py-4 border-b border-card">
-                <UserPinnedScores
-                  userId={user.id}
-                  selectedMode={selectedMode}
-                  user={user}
-                  refreshRef={pinnedScoresRefreshRef}
-                  onPinActionRef={pinActionRef}
-                  bestScoresActionRef={bestScoresActionRef}
-                />
-              </div>
-
-              {/* Best scores */}
-              <div className="px-3 md:px-6 lg:px-8 py-4 border-b border-card">
-                <UserBestScores
-                  userId={user.id}
-                  selectedMode={selectedMode}
-                  user={user}
-                  refreshRef={bestScoresRefreshRef}
-                  onPinnedListRefresh={() => pinnedScoresRefreshRef.current?.()}
-                  pinActionRef={pinActionRef}
-                  bestScoresActionRef={bestScoresActionRef}
-                />
-              </div>
-
-              {/* First place ranks placeholder */}
-              <div className="px-3 md:px-6 lg:px-8 py-4">
-                <SectionHeader
-                  title="First Place Ranks"
-                  count={user.scores_first_count ?? 0}
-                />
-                <UnderConstruction label="First place ranks" />
-              </div>
-            </div>
-          )}
-
-          {/* ── Medals ── */}
-          {activeTab === 'medals' && (
-            <div className="px-3 md:px-6 lg:px-8 py-4">
-              <UserMedals userAchievements={user.user_achievements} />
-            </div>
-          )}
-
-          {/* ── Historical ── */}
-          {activeTab === 'historical' && (
-            <div>
-              <div className="px-3 md:px-6 lg:px-8 py-4 border-b border-card">
-                <UserRecentScores userId={user.id} selectedMode={selectedMode} user={user} />
-              </div>
-              <div className="px-3 md:px-6 lg:px-8 py-4">
-                <UserHistorical userId={user.id} monthlyPlaycounts={user.monthly_playcounts} />
-              </div>
-            </div>
-          )}
-
-          {/* ── Beatmaps ── */}
-          {activeTab === 'beatmaps' && (
-            <div className="px-3 md:px-6 lg:px-8 py-4">
-              <SectionHeader title="Favourite Beatmaps" count={user.favourite_beatmapset_count ?? 0} />
-              <UnderConstruction label="Beatmaps" />
-            </div>
-          )}
-
-          {/* ── Recent ── */}
-          {activeTab === 'recent' && (
-            <div className="px-3 md:px-6 lg:px-8 py-4">
-              <UserRecentActivity userId={user.id} />
-            </div>
-          )}
-
+          {profileOrder.map(section => renderSection(section))}
         </div>
+
       </div>
     </main>
   );
