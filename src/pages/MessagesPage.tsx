@@ -99,7 +99,36 @@ const MessagesPage: React.FC = () => {
       return newChannels;
     });
   }, []);
-
+  // 为私聊频道获取用户信息的通用函数
+  const enrichChannelsWithUserInfo = useCallback(async (rawChannels: ChatChannel[]): Promise<ChatChannel[]> => {
+    return Promise.all(
+      rawChannels.map(async (channel) => {
+        if (channel.type === 'PM' && channel.users.length > 0) {
+          try {
+            const targetUserId = channel.users.find(id => id !== user?.id);
+            if (targetUserId && !channel.user_info) {
+              const userInfo = await apiCache.getUser(targetUserId);
+              if (userInfo) {
+                return {
+                  ...channel,
+                  name: userInfo.username,
+                  user_info: {
+                    id: userInfo.id,
+                    username: userInfo.username,
+                    avatar_url: userInfo.avatar_url || userAPI.getAvatarUrl(userInfo.id),
+                    cover_url: userInfo.cover_url || userInfo.cover?.url || ''
+                  }
+                };
+              }
+            }
+          } catch (error) {
+            console.error('获取用户信息失败:', error);
+          }
+        }
+        return channel;
+      })
+    );
+  }, [user?.id]);
   // 更新频道已读状态
   const updateChannelReadStatus = useCallback((channelId: number, messageId: number) => {
     setChannels(prev => prev.map(channel => {
@@ -246,37 +275,7 @@ const MessagesPage: React.FC = () => {
         }
         
         // 为私聊频道获取用户信息
-        const channelsWithUserInfo = await Promise.all(
-          (channelsData || []).map(async (channel: ChatChannel) => {
-            if (channel.type === 'PM' && channel.users.length > 0) {
-              try {
-                // 获取私聊对象的用户ID
-                const targetUserId = channel.users.find(id => id !== user?.id);
-                if (targetUserId) {
-                  console.log('为私聊频道获取用户信息:', targetUserId);
-                  
-                  const userInfo = await apiCache.getUser(targetUserId);
-                  
-                  if (userInfo) {
-                    return {
-                      ...channel,
-                      name: `私聊: ${userInfo.username}`,
-                      user_info: {
-                        id: userInfo.id,
-                        username: userInfo.username,
-                        avatar_url: userInfo.avatar_url || userAPI.getAvatarUrl(userInfo.id),
-                        cover_url: userInfo.cover_url || userInfo.cover?.url || ''
-                      }
-                    };
-                  }
-                }
-              } catch (error) {
-                console.error('获取用户信息失败:', error);
-              }
-            }
-            return channel;
-          })
-        );
+        const channelsWithUserInfo = await enrichChannelsWithUserInfo(channelsData || []);
         
         // 过滤并排序频道：倒序排列，频道在前，最下面是第一个
         const sortedChannels = channelsWithUserInfo.sort((a: ChatChannel, b: ChatChannel) => {
@@ -293,7 +292,7 @@ const MessagesPage: React.FC = () => {
           // 同类型内按名称倒序排列
           return b.name.localeCompare(a.name);
         });
-        
+
         console.log('排序后的频道列表:', sortedChannels.map((ch: ChatChannel) => ({ id: ch.channel_id, name: ch.name, type: ch.type })));
         setChannels(sortedChannels);
         
@@ -562,7 +561,7 @@ const MessagesPage: React.FC = () => {
               if (ch.channel_id === channel.channel_id) {
                 return {
                   ...ch,
-                  name: `私聊: ${userInfo.username}`,
+                  name: userInfo.username,
                   user_info: {
                     id: userInfo.id,
                     username: userInfo.username,
@@ -2188,34 +2187,30 @@ const MessagesPage: React.FC = () => {
           
           if (isAuthenticated && newChannel) {
             try {
-              // 重新加载频道列表
               console.log('重新加载频道列表以包含新私聊频道');
-              const channels = await chatAPI.getChannels();
-              console.log('重新加载后的频道列表:', channels);
+              const rawChannels = await chatAPI.getChannels();
+              console.log('重新加载后的频道列表:', rawChannels);
               
-              // 过滤并排序频道：倒序排列，频道在前，最下面是第一个
-              const sortedChannels = channels.sort((a: ChatChannel, b: ChatChannel) => {
-                // 优先级：公共频道 > 私聊 > 团队 > 私有
+              const enriched = await enrichChannelsWithUserInfo(rawChannels);
+              
+              const sortedChannels = enriched.sort((a: ChatChannel, b: ChatChannel) => {
                 const typeOrder: Record<string, number> = { 'PUBLIC': 0, 'PM': 1, 'TEAM': 2, 'PRIVATE': 3 };
                 const aOrder = typeOrder[a.type] || 4;
                 const bOrder = typeOrder[b.type] || 4;
-                
-                if (aOrder !== bOrder) {
-                  // 倒序排列：较大的 order 值在前
-                  return bOrder - aOrder;
-                }
-                
-                // 同类型内按名称倒序排列
+                if (aOrder !== bOrder) return bOrder - aOrder;
                 return b.name.localeCompare(a.name);
               });
               
               setChannels(sortedChannels);
               
-              // 自动选择新创建的私聊频道
-              console.log('自动选择新创建的私聊频道:', newChannel.name);
-              await selectChannel(newChannel);
+              // Find the matched channel from the fresh enriched list
+              const matchedChannel = sortedChannels.find(
+                (ch: ChatChannel) => ch.channel_id === newChannel.channel_id
+              ) || newChannel;
               
-              // 确保消息被正确加载
+              console.log('自动选择新创建的私聊频道:', matchedChannel.name);
+              await selectChannel(matchedChannel);
+              
               console.log('私聊频道选择完成，开始加载消息');
             } catch (error) {
               console.error('处理新私聊频道失败:', error);

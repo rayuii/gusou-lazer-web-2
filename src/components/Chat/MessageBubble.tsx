@@ -40,7 +40,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
           />
         </div>
       )}
-      
+
       {/* 消息内容 */}
       <div className={`flex-1 max-w-md ${isOwnMessage ? 'text-right' : ''}`}>
         {/* 发送者信息和时间 */}
@@ -57,9 +57,9 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
             </span>
           </div>
         )}
-        
+
         {/* 消息气泡 */}
-        <div className={`inline-block`}>
+        <div className="inline-block">
           <div className={`
             p-3 rounded-2xl text-sm
             ${isOwnMessage
@@ -77,10 +77,9 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
           </div>
         </div>
       </div>
-      
+
       {/* 占位符，保持布局平衡 */}
-      {showAvatar && !isGrouped && !isOwnMessage && <div className="w-8" />}
-      {showAvatar && !isGrouped && isOwnMessage && <div className="w-8" />}
+      {showAvatar && !isGrouped && <div className="w-8" />}
     </motion.div>
   );
 };
