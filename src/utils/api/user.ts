@@ -224,7 +224,7 @@ export const userAPI = {
     });
     return response.data;
   },
-  
+
   getMostPlayedBeatmaps: async (userId: number, limit: number = 10, offset: number = 0) => {
     const params = new URLSearchParams();
     params.append('limit', limit.toString());
@@ -274,7 +274,37 @@ export const userAPI = {
     });
     return response.data;
   },
+  getFirstScores: async (
+    userId: number,
+    mode: string = 'osu',
+    limit: number = 6,
+    offset: number = 0
+  ) => {
+    const params = new URLSearchParams();
+    params.append('limit', limit.toString());
+    params.append('offset', offset.toString());
+    params.append('mode', mode);
 
+    const url = `/api/v2/users/${userId}/scores/firsts?${params.toString()}`;
+    const response = await api.get(url, {
+      headers: { 'x-api-version': '20220705' },
+    });
+    return response.data;
+  },
+
+  getFavouriteBeatmapsets: async (
+    userId: number,
+    limit: number = 6,
+    offset: number = 0
+  ) => {
+    const params = new URLSearchParams();
+    params.append('limit', limit.toString());
+    params.append('offset', offset.toString());
+
+    const url = `/api/v2/users/${userId}/beatmapsets/favourite?${params.toString()}`;
+    const response = await api.get(url);
+    return response.data;
+  },
   // Change password with current password or TOTP code
   changePassword: async (newPassword: string, currentPassword?: string, totpCode?: string) => {
     console.log('修改密码');

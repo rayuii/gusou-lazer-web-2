@@ -23,6 +23,8 @@ import { useUserPreferences } from '../../hooks/useUserPreferences';
 import { useProfileColor } from '../../contexts/ProfileColorContext';
 import UserInfoBar from './UserInfoBar';
 import ProfileSectionTabs from './ProfileSectionTabs';
+import UserFavouriteBeatmaps from './UserFavouriteBeatmaps';
+import UserFirstScores from './UserFirstScores';
 
 interface UserProfileLayoutProps {
   user: User;
@@ -248,7 +250,7 @@ const UserProfileLayout: React.FC<UserProfileLayoutProps> = ({ user, selectedMod
             </div>
             <div className="px-3 md:px-6 lg:px-8 py-4 border-b border-card">
               <SectionHeader title="First Place Ranks" count={user.scores_first_count ?? 0} />
-              <UnderConstruction label="First place ranks" />
+              <UserFirstScores userId={user.id} selectedMode={selectedMode} user={user} />
             </div>
           </div>
         );
@@ -273,7 +275,7 @@ const UserProfileLayout: React.FC<UserProfileLayoutProps> = ({ user, selectedMod
         return (
           <div key="beatmaps" className="px-3 md:px-6 lg:px-8 py-4 border-b border-card">
             <SectionHeader title="Favourite Beatmaps" count={user.favourite_beatmapset_count ?? 0} />
-            <UnderConstruction label="Beatmaps" />
+            <UserFavouriteBeatmaps userId={user.id} user={user} />
           </div>
         );
       default:
