@@ -30,12 +30,17 @@ export interface ScoreUser {
   avatar_url: string;
 }
 
+export interface ScoreMod {
+  acronym: string;
+  settings?: Record<string, any>;
+}
+
 export interface LeaderboardScore {
   id: number;
   user_id: number;
   beatmap_id: number;
   accuracy: number;          // 0.0 – 1.0
-  mods: string[];            // ['HD', 'DT', …]
+  mods: ScoreMod[];          // [{ acronym: "HD", settings: {} }, …]
   total_score: number;
   max_combo: number;
   rank: string;              // 'SS', 'S', 'A', 'B', 'C', 'D', 'F'
@@ -97,12 +102,48 @@ const RANK_COLORS: Record<string, string> = {
 };
 
 const MOD_COLORS: Record<string, string> = {
-  NF: '#6b7280', EZ: '#86efac', HD: '#fbbf24', HR: '#f87171',
-  SD: '#fb923c', DT: '#818cf8', HT: '#94a3b8', NC: '#e879f9',
-  FL: '#475569', SO: '#fb7185', PF: '#f97316', RX: '#34d399',
-  AP: '#4ade80', AT: '#06b6d4', MR: '#f43f5e',
-  '4K': '#38bdf8', '5K': '#38bdf8', '6K': '#38bdf8',
-  '7K': '#38bdf8', '8K': '#38bdf8', '9K': '#38bdf8',
+  // DifficultyReduction → lime
+  EZ: 'hsl(90,100%,70%)', NF: 'hsl(90,100%,70%)', HT: 'hsl(90,100%,70%)', DC: 'hsl(90,100%,70%)',
+  // DifficultyIncrease → red
+  HR: 'hsl(360,100%,70%)', SD: 'hsl(360,100%,70%)', PF: 'hsl(360,100%,70%)',
+  DT: 'hsl(360,100%,70%)', NC: 'hsl(360,100%,70%)', HD: 'hsl(360,100%,70%)',
+  FL: 'hsl(360,100%,70%)', AC: 'hsl(360,100%,70%)',
+  // Automation → blue
+  RX: 'hsl(200,100%,70%)', AP: 'hsl(200,100%,70%)', AT: 'hsl(200,100%,70%)', CN: 'hsl(200,100%,70%)',
+  // Conversion → purple
+  MR: 'hsl(255,100%,70%)', RD: 'hsl(255,100%,70%)', AL: 'hsl(255,100%,70%)',
+  SG: 'hsl(255,100%,70%)', DS: 'hsl(255,100%,70%)', FI: 'hsl(255,100%,70%)',
+  CO: 'hsl(255,100%,70%)', HO: 'hsl(255,100%,70%)', IN: 'hsl(255,100%,70%)',
+  '1K': 'hsl(255,100%,70%)', '2K': 'hsl(255,100%,70%)', '3K': 'hsl(255,100%,70%)',
+  '4K': 'hsl(255,100%,70%)', '5K': 'hsl(255,100%,70%)', '6K': 'hsl(255,100%,70%)',
+  '7K': 'hsl(255,100%,70%)', '8K': 'hsl(255,100%,70%)', '9K': 'hsl(255,100%,70%)',
+  '10K': 'hsl(255,100%,70%)',
+  // Fun → pink
+  BL: 'hsl(333,100%,70%)', ST: 'hsl(333,100%,70%)', DP: 'hsl(333,100%,70%)',
+  TC: 'hsl(333,100%,70%)', BR: 'hsl(333,100%,70%)', AD: 'hsl(333,100%,70%)',
+  MU: 'hsl(333,100%,70%)', NS: 'hsl(333,100%,70%)', MB: 'hsl(333,100%,70%)',
+  // System → yellow
+  SO: 'hsl(45,100%,70%)', CL: 'hsl(45,100%,70%)', SV2: 'hsl(45,100%,70%)',
+  AS: 'hsl(45,100%,70%)', CS: 'hsl(45,100%,70%)',
+};
+
+const MOD_FILENAMES: Record<string, string> = {
+  EZ: 'mod-easy', NF: 'mod-no-fail', HT: 'mod-half-time', DC: 'mod-daycore',
+  HR: 'mod-hard-rock', SD: 'mod-sudden-death', PF: 'mod-perfect',
+  DT: 'mod-double-time', NC: 'mod-nightcore', HD: 'mod-hidden',
+  FL: 'mod-flashlight', AC: 'mod-accuracy-challenge',
+  RX: 'mod-relax', AP: 'mod-autopilot', AT: 'mod-autoplay', CN: 'mod-cinema',
+  MR: 'mod-mirror', RD: 'mod-random', AL: 'mod-alternate', SG: 'mod-single-tap',
+  BL: 'mod-blinds', ST: 'mod-strict-tracking', DP: 'mod-depth',
+  TC: 'mod-target-practice', BR: 'mod-barrel-roll', AD: 'mod-approach-different',
+  MU: 'mod-muted', NS: 'mod-no-scope', MB: 'mod-magnetised',
+  SO: 'mod-spun-out', CL: 'mod-classic', SV2: 'mod-score-v2',
+  AS: 'mod-adaptive-speed', CS: 'mod-constant-speed',
+  '1K': 'mod-one-key', '2K': 'mod-two-keys', '3K': 'mod-three-keys',
+  '4K': 'mod-four-keys', '5K': 'mod-five-keys', '6K': 'mod-six-keys',
+  '7K': 'mod-seven-keys', '8K': 'mod-eight-keys', '9K': 'mod-nine-keys',
+  '10K': 'mod-ten-keys', DS: 'mod-dual-stages', FI: 'mod-fade-in',
+  CO: 'mod-cover', HO: 'mod-hold-off', IN: 'mod-invert',
 };
 
 const timeAgo = (iso: string): string => {
@@ -221,7 +262,7 @@ const TopScoreCard: React.FC<{ score: LeaderboardScore }> = ({ score }) => {
         {/* Mods */}
         {score.mods.length > 0 && (
           <div className="flex flex-wrap gap-1 justify-end max-w-[100px]">
-            {score.mods.map((m) => <ModChip key={m} mod={m} />)}
+            {score.mods.map((m) => <ModChip key={m.acronym} mod={m.acronym} />)}
           </div>
         )}
       </div>
@@ -472,7 +513,7 @@ const BeatmapLeaderboard: React.FC<BeatmapLeaderboardProps> = ({ beatmapId, mode
                       <td className="px-3 py-3 text-right">
                         <div className="flex flex-wrap gap-1 justify-end">
                           {score.mods.length > 0
-                            ? score.mods.map((m) => <ModChip key={m} mod={m} />)
+                            ? score.mods.map((m) => <ModChip key={m.acronym} mod={m.acronym} />)
                             : <span className="text-slate-400 dark:text-slate-600 text-xs">—</span>
                           }
                         </div>
