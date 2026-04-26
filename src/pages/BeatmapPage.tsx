@@ -9,6 +9,7 @@ import { formatDuration, formatNumber } from '../utils/format';
 import { GAME_MODE_NAMES } from '../types';
 import { AudioPlayButton, AudioPlayerControls } from '../components/UI/AudioPlayer';
 import toast from 'react-hot-toast';
+import BeatmapLeaderboard from '../components/Beatmap/BeatmapLeaderboard'; // adjust path
 
 const BeatmapPage: React.FC = () => {
   const { beatmapId, beatmapsetId } = useParams<{ beatmapId?: string; beatmapsetId?: string }>();
@@ -409,7 +410,12 @@ const BeatmapPage: React.FC = () => {
               </div>
             )}
           </div>
-
+          {selectedBeatmap && (
+            <BeatmapLeaderboard
+              beatmapId={selectedBeatmap.id}
+              mode={selectedBeatmap.mode as 'osu' | 'taiko' | 'fruits' | 'mania'}
+            />
+          )}
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Beatmapset Info */}
