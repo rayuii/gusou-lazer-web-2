@@ -467,7 +467,7 @@ const ScorePage: React.FC = () => {
       </div>
 
       {/* ── bottom: user card + stats ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: 12, alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 12, alignItems: 'start' }}>
 
         {/* user card */}
         <Link to={`/users/${user.id}`} style={{ textDecoration: 'none' }}>
@@ -488,14 +488,22 @@ const ScorePage: React.FC = () => {
             )}
             <div style={{ position: 'relative', zIndex: 1, padding: '10px 12px' }}>
               <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                <img
-                  src={user.avatar_url}
-                  alt={user.username}
-                  style={{ width: 44, height: 44, borderRadius: 8, objectFit: 'cover', border: '2px solid rgba(255,255,255,0.15)', flexShrink: 0 }}
-                />
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+                  <img
+                    src={user.avatar_url}
+                    alt={user.username}
+                    style={{ width: 44, height: 44, borderRadius: 8, objectFit: 'cover', border: '2px solid rgba(255,255,255,0.15)', display: 'block' }}
+                  />
+                  {/* online indicator ring below avatar */}
+                  <div style={{
+                    width: 16, height: 16, borderRadius: '50%',
+                    border: `3px solid ${user.is_online ? '#4caf50' : '#555'}`,
+                    background: 'transparent',
+                  }} />
+                </div>
                 <div style={{ minWidth: 0 }}>
-                  {/* flags row */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>
+                  {/* username + flags on same line */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3, flexWrap: 'wrap' }}>
                     {flagUrl && (
                       <img
                         src={flagUrl}
@@ -515,17 +523,14 @@ const ScorePage: React.FC = () => {
                     {user.is_supporter && (
                       <span style={{ fontSize: 12, lineHeight: 1 }}>💗</span>
                     )}
+                    <span style={{ fontSize: 15, fontWeight: 800, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.username}</span>
                   </div>
-                  <div style={{ fontSize: 15, fontWeight: 800, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.username}</div>
                   <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>
                     {user.is_online ? (
-                      <span style={{ color: '#4caf50' }}>● Online</span>
+                      <span style={{ color: '#4caf50' }}>Online</span>
                     ) : (
                       <>Last seen {user.last_visit ? new Date(user.last_visit).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}</>
                     )}
-                  </div>
-                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.22)', marginTop: 1 }}>
-                    {user.is_online ? 'Online' : 'Offline'}
                   </div>
                 </div>
               </div>
