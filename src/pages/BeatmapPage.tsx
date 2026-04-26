@@ -443,7 +443,7 @@ const BeatmapPage: React.FC = () => {
                   <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('beatmap.actions')}</h3>
                 </div>
                 <div className="p-6 space-y-3">
-                  
+                  <a
                     href={`https://osu.ppy.sh/beatmapsets/${beatmapset.id}/download`}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -457,7 +457,7 @@ const BeatmapPage: React.FC = () => {
                     </span>
                   </a>
                   {beatmapset.preview_url && (
-                    
+                    <a
                       href={beatmapset.preview_url}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -471,7 +471,7 @@ const BeatmapPage: React.FC = () => {
                       </span>
                     </a>
                   )}
-                  
+                  <a
                     href={`https://osu.ppy.sh/beatmapsets/${beatmapset.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
