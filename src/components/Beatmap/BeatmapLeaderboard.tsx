@@ -308,7 +308,8 @@ const TopScoreCard: React.FC<{ score: LeaderboardScore }> = ({ score }) => {
 const TYPES: { value: LeaderboardType; label: string }[] = [
   { value: 'global',  label: 'Global' },
   { value: 'country', label: 'Country' },
-  { value: 'friends', label: 'Friends' },
+  { value: 'friend', label: 'Friends' },
+  { value: 'team', label: 'Team' },
 ];
 
 const FilterBar: React.FC<{
