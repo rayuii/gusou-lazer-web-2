@@ -21,7 +21,7 @@ const AdminScores: React.FC = () => {
   const [mode, setMode]   = useState<AdminGameMode>('osu');
   const [reason, setReason] = useState('');
 
-  const { scores, loading, deleteScore, refresh } = useAdminScores(type, mode);
+  const { scores, loading, deleteScore, refresh: _refresh } = useAdminScores(type, mode);
 
   useEffect(() => {
     const el = document.getElementById('admin-page-title');

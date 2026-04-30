@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { useAdminUsers } from '../../hooks/useAdmin';
+import { useAdminUsers } from '../hooks/useAdmin';
 import {
   AdminTable, GroupBadge, StatusDot, ActionBtn,
   SearchBar, AdminSelect, PageHeader, AvatarCell,
-} from '../../components/Admin/AdminUI';
-import { adminAPI, type AdminUser, type AdminGameMode } from '../../utils/adminAPI';
+} from '../components/Admin/AdminUI';
+import { adminAPI, type AdminUser, type AdminGameMode } from '../utils/adminAPI';
 import { RiCloseLine, RiRefreshLine, RiShieldLine } from 'react-icons/ri';
 import toast from 'react-hot-toast';
 
