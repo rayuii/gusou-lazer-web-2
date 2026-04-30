@@ -264,27 +264,14 @@ const MessagesPage: React.FC = () => {
   // 监听通知变化，处理私聊通知
   useEffect(() => {
     if (notifications.length > 0) {
-      console.log('检测到新通知，数量:', notifications.length);
-      
-      // 使用 object_id 进行分组去重
       const processedObjectIds = new Set<string>();
-      
-      // 处理所有私聊通知，按 object_id 去重
       notifications.forEach(notification => {
-        if (notification.name === 'channel_message' && 
-            notification.details?.type === 'pm') {
-          
+        if (notification.name === 'channel_message' && notification.details?.type === 'pm') {
           const objectKey = `${notification.object_type}-${notification.object_id}`;
-          
           if (!processedObjectIds.has(objectKey)) {
-            console.log('处理私聊通知:', notification.id, objectKey, notification.details.title);
             processedObjectIds.add(objectKey);
             handlePrivateMessageNotification(notification);
-            
-            // 自动标记已存在的私聊消息为已读
-            autoMarkPrivateMessagesAsRead(notification);
-          } else {
-            console.log('跳过重复的通知对象:', objectKey);
+            // Removed: autoMarkPrivateMessagesAsRead — this was causing phantom reads
           }
         }
       });
@@ -998,156 +985,34 @@ const MessagesPage: React.FC = () => {
 
   // 处理私聊通知，创建对应的私聊频道
   const handlePrivateMessageNotification = async (notification: APINotification) => {
-    if (notification.name === 'channel_message' && notification.details?.type === 'pm') {
-      try {
-        console.log('检测到私聊消息通知，尝试创建私聊频道:', notification);
-        
-        // 从通知中获取用户信息
-        const sourceUserId = notification.source_user_id;
-        
-        if (!sourceUserId) {
-          console.log('通知中缺少源用户ID，跳过处理');
-          return;
-        }
-        
-        // 检查是否已经存在对应的私聊频道（通过用户ID去重）
-        const existingChannel = channels.find(ch => {
-          if (ch.type !== 'PM') return false;
-          
-          // 检查频道是否包含当前用户和目标用户
-          const hasCurrentUser = ch.users.includes(user?.id || 0);
-          const hasTargetUser = ch.users.includes(sourceUserId);
-          
-          return hasCurrentUser && hasTargetUser;
-        });
-        
-        if (existingChannel) {
-          console.log('私聊频道已存在，跳过创建:', existingChannel.name);
-          return;
-        }
-        
-        console.log('未找到现有私聊频道，获取用户信息并创建新的私聊频道');
-        
-        // 获取用户详细信息
-        let userName = notification.details.title as string || '未知用户';
-        let userAvatarUrl = '';
-        let userCoverUrl = '';
-        
-        try {
-          // 检查缓存
-          const userInfo = await apiCache.getUser(sourceUserId);
-          
-          if (userInfo) {
-            console.log('获取到用户信息:', userInfo);
-            userName = userInfo.username || userName;
-            userAvatarUrl = userInfo.avatar_url || userAPI.getAvatarUrl(sourceUserId);
-            userCoverUrl = userInfo.cover_url || userInfo.cover?.url || '';
-          }
-        } catch (error) {
-          console.error('获取用户信息失败，使用默认值:', error);
-          userAvatarUrl = userAPI.getAvatarUrl(sourceUserId);
-        }
-        
-        // 创建新的私聊频道对象
-        const newPrivateChannel: ChatChannel = {
-          channel_id: parseInt(notification.object_id.toString()), // 转换为数字
-          name: `私聊: ${userName}`,
-          description: `与 ${userName} 的私聊`,
-          type: 'PM',
-          moderated: false,
-          users: [user?.id || 0, sourceUserId],
-          current_user_attributes: {
-            can_message: true,
-            can_message_error: undefined,
-            last_read_id: 0
-          },
-          last_read_id: 0,
-          last_message_id: 0,
-          recent_messages: [],
-          message_length_limit: 1000,
-          // 添加用户信息到频道对象中以便显示
-          user_info: {
-            id: sourceUserId,
-            username: userName,
-            avatar_url: userAvatarUrl,
-            cover_url: userCoverUrl
-          }
-        };
-        
-        console.log('创建新的私聊频道对象:', newPrivateChannel);
-        
-        // 添加到频道列表，确保不重复
-        setChannels(prev => {
-          // 再次检查是否已经存在相同的私聊频道（防止竞态条件）
-          const isDuplicate = prev.some(ch => {
-            if (ch.type !== 'PM') return false;
-            
-            // 检查是否包含相同的用户组合
-            const hasCurrentUser = ch.users.includes(user?.id || 0);
-            const hasTargetUser = ch.users.includes(sourceUserId);
-            
-            return hasCurrentUser && hasTargetUser;
-          });
-          
-          if (isDuplicate) {
-            console.log('检测到重复的私聊频道，跳过添加');
-            return prev;
-          }
-          
-          console.log('添加新的私聊频道到列表');
-          const newChannels = [...prev, newPrivateChannel];
-          
-          // 重新排序：倒序排列，频道在前，最下面是第一个
-          return newChannels.sort((a: ChatChannel, b: ChatChannel) => {
-            // 优先级：公共频道 > 私聊 > 团队 > 私有
-            const typeOrder: Record<string, number> = { 'PUBLIC': 0, 'PM': 1, 'TEAM': 2, 'PRIVATE': 3 };
-            const aOrder = typeOrder[a.type] || 4;
-            const bOrder = typeOrder[b.type] || 4;
-            
-            if (aOrder !== bOrder) {
-              // 倒序排列：较大的 order 值在前
-              return bOrder - aOrder;
-            }
-            
-            // 同类型内按名称倒序排列
-            return b.name.localeCompare(a.name);
-          });
-        });
-        
-        //console.log('私聊频道已添加到列表');
-        //toast.success(`发现新的私聊: ${userName}`);
-        
-        // 从通知中提取消息内容并创建聊天消息对象
-        const messageContent = notification.details?.title as string;
-        if (messageContent) {
-          console.log('从通知中提取消息内容，准备添加到聊天列表:', messageContent);
-          
-          // 创建一个临时的消息对象（基于通知信息）
-          const chatMessage: ChatMessage = {
-            message_id: Date.now() + Math.random(), // 生成临时的唯一消息ID
-            channel_id: parseInt(notification.object_id.toString()),
-            content: messageContent,
-            timestamp: notification.created_at,
-            sender_id: sourceUserId,
-            is_action: false,
-            // sender 是可选的，暂不提供完整的 User 对象
-          };
-          
-          console.log('创建的临时聊天消息对象:', chatMessage);
-          
-          // 如果当前没有选中频道，或者选中的频道就是这个私聊频道，则添加消息
-          const currentChannel = selectedChannelRef.current;
-          if (!currentChannel || currentChannel.channel_id === newPrivateChannel.channel_id) {
-            console.log('将从通知提取的消息添加到当前聊天列表');
-            addMessageToList(chatMessage, 'websocket');
-          } else {
-            console.log('当前选中的不是对应私聊频道，消息暂不显示');
-          }
-        }
-        
-      } catch (error) {
-        console.error('处理私聊通知失败:', error);
-      }
+    if (notification.name !== 'channel_message' || notification.details?.type !== 'pm') return;
+
+    const sourceUserId = notification.source_user_id;
+    if (!sourceUserId) return;
+
+    // Check if channel already exists
+    const existingChannel = channelsRef.current.find(ch => 
+      ch.type === 'PM' && 
+      ch.users.includes(user?.id || 0) && 
+      ch.users.includes(sourceUserId)
+    );
+
+    if (existingChannel) return;
+
+    // Just refresh from API instead of creating a fake channel object
+    try {
+      const rawChannels = await chatAPI.getChannels();
+      const enriched = await enrichChannelsWithUserInfo(rawChannels);
+      const sorted = enriched.sort((a: ChatChannel, b: ChatChannel) => {
+        const typeOrder: Record<string, number> = { 'PUBLIC': 0, 'PM': 1, 'TEAM': 2, 'PRIVATE': 3 };
+        const aOrder = typeOrder[a.type] || 4;
+        const bOrder = typeOrder[b.type] || 4;
+        if (aOrder !== bOrder) return bOrder - aOrder;
+        return b.name.localeCompare(a.name);
+      });
+      setChannels(sorted);
+    } catch (e) {
+      console.error('Failed to refresh channels on PM notification:', e);
     }
   };
 
