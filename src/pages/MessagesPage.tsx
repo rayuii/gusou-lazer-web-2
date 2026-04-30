@@ -156,84 +156,11 @@ const MessagesPage: React.FC = () => {
 
   // 使用WebSocket处理实时消息
   // chatConnected 当前未在 UI 中使用，改名为 _chatConnected 以消除未使用警告
+  const onNewMessageRef = useRef<(message: ChatMessage) => void>();
   const { isConnected: _chatConnected } = useWebSocketNotifications({
     isAuthenticated,
     currentUser: user,
-    onNewMessage: (message) => {
-      console.log('WebSocket收到消息（处理前）:', {
-        messageId: message.message_id,
-        channelId: message.channel_id,
-        senderId: message.sender_id,
-        userId: user?.id,
-        content: message.content.substring(0, 50),
-        selectedChannelId: selectedChannelRef.current?.channel_id,
-        selectedChannelName: selectedChannelRef.current?.name
-      });
-      
-      // 过滤自己的消息，不显示推送
-      if (message.sender_id === user?.id) {
-        console.log('收到自己的消息，跳过处理:', message.message_id, 'sender_id:', message.sender_id, 'user.id:', user?.id);
-        return;
-      }
-      
-      console.log('WebSocket收到消息（处理后）:', {
-        messageId: message.message_id,
-        channelId: message.channel_id,
-        senderId: message.sender_id,
-        content: message.content.substring(0, 50),
-        selectedChannelId: selectedChannelRef.current?.channel_id,
-        selectedChannelName: selectedChannelRef.current?.name
-      });
-  
-      // messageWithLocalTime变量在此处不再使用，因为我们直接传递原始message给addMessageToList
-      
-      // 检查是否应该添加到当前频道（使用ref确保获取最新状态）
-      const currentSelectedChannel = selectedChannelRef.current;
-      const shouldAddToCurrentChannel = currentSelectedChannel && message.channel_id === currentSelectedChannel.channel_id;
-      
-      if (shouldAddToCurrentChannel) {
-        console.log('添加消息到当前频道，当前列表长度:', messagesRef.current.length);
-        addMessageToList(message, 'websocket');
-      } else if (currentSelectedChannel) {
-        console.log('消息不属于当前频道，当前频道:', currentSelectedChannel.channel_id, '消息频道:', message.channel_id);
-      } else {
-        console.log('没有选中的频道，尝试找到对应频道并自动选择');
-        console.log('当前频道列表长度:', channelsRef.current.length);
-        console.log('目标频道ID:', message.channel_id);
-        console.log('频道列表:', channelsRef.current.map(ch => ({id: ch.channel_id, name: ch.name})));
-        
-        // 如果没有选中频道，尝试找到对应的频道并自动选择
-        const targetChannel = channelsRef.current.find(ch => ch.channel_id === message.channel_id);
-        if (targetChannel) {
-          console.log('找到对应频道，自动选择:', targetChannel.name);
-          
-          // 调用selectChannel来加载历史消息和设置频道
-          // 在加载完成后再添加新消息
-          selectChannelAndAddMessage(targetChannel, message);
-        } else {
-          console.log('未找到对应频道，频道ID:', message.channel_id);
-          
-          // 如果没找到频道，可能是频道列表还没加载完，尝试重新加载频道列表
-          if (channelsRef.current.length === 0) {
-            console.log('频道列表为空，尝试重新加载频道');
-            chatAPI.getChannels().then(channelsData => {
-              console.log('重新加载频道完成，频道数量:', channelsData?.length || 0);
-              if (channelsData) {
-                setChannels(channelsData);
-                const retryChannel = channelsData.find((ch: ChatChannel) => ch.channel_id === message.channel_id);
-                if (retryChannel) {
-                  console.log('重新加载后找到频道，自动选择:', retryChannel.name);
-                  // 调用selectChannelAndAddMessage来处理频道选择和消息添加
-                  selectChannelAndAddMessage(retryChannel, message);
-                }
-              }
-            }).catch(error => {
-              console.error('重新加载频道失败:', error);
-            });
-          }
-        }
-      }
-    },
+    onNewMessage: (msg) => onNewMessageRef.current?.(msg),
   });
 
   // 检测屏幕尺寸
@@ -704,6 +631,37 @@ const MessagesPage: React.FC = () => {
       throttledMarkAsRead(message.channel_id, message.message_id);
     }, 0);
   }, []);
+  // Wire up the WebSocket handler now that all functions are defined
+  useEffect(() => {
+    onNewMessageRef.current = (message) => {
+      if (user?.id !== undefined && message.sender_id === user.id) return;
+
+      const currentSelectedChannel = selectedChannelRef.current;
+      const shouldAddToCurrentChannel =
+        currentSelectedChannel && message.channel_id === currentSelectedChannel.channel_id;
+
+      if (shouldAddToCurrentChannel) {
+        addMessageToList(message, 'websocket');
+      } else {
+        const targetChannel = channelsRef.current.find(
+          (ch) => ch.channel_id === message.channel_id
+        );
+        if (targetChannel) {
+          selectChannelAndAddMessage(targetChannel, message);
+        } else if (channelsRef.current.length === 0) {
+          chatAPI.getChannels().then((channelsData) => {
+            if (channelsData) {
+              setChannels(channelsData);
+              const retryChannel = channelsData.find(
+                (ch: ChatChannel) => ch.channel_id === message.channel_id
+              );
+              if (retryChannel) selectChannelAndAddMessage(retryChannel, message);
+            }
+          }).catch(console.error);
+        }
+      }
+    };
+  }, [user?.id, addMessageToList]);
 
   // 发送消息
   const sendMessage = async (messageText: string) => {
@@ -2093,7 +2051,11 @@ const MessagesPage: React.FC = () => {
             </div>
 
             {/* 消息列表 */}
-            <div className="flex-1 overflow-y-auto p-4 min-h-0">
+            <div
+              id="chat-message-scroll-container"
+              ref={scrollContainerRef}
+              className="flex-1 overflow-y-auto p-4 min-h-0"
+            >
               {messages.map((message, index) => {
                 const prevMessage = messages[index - 1];
                 
