@@ -19,4 +19,4 @@ export type {
 } from '../types/admin';
 
 // AdminGameMode isn't in types/admin yet — define it here
-export type AdminGameMode = 'osu' | 'taiko' | 'catch' | 'mania';
+export type AdminGameMode = 'osu' | 'taiko' | 'fruits' | 'mania';

@@ -43,7 +43,7 @@ const AdminScores: React.FC = () => {
   const MODE_OPTIONS: { value: AdminGameMode; label: string }[] = [
     { value: 'osu',   label: 'osu!' },
     { value: 'taiko', label: 'taiko' },
-    { value: 'catch', label: 'catch' },
+    { value: 'fruits', label: 'catch' },
     { value: 'mania', label: 'mania' },
   ];
 

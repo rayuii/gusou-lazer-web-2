@@ -8,6 +8,7 @@ import { adminAPI, type AdminUser, type AdminGameMode } from '../utils/adminAPI'
 import { RiCloseLine, RiRefreshLine, RiShieldLine } from 'react-icons/ri';
 import toast from 'react-hot-toast';
 import type { AdminUserStatus } from '../types/admin';
+import type { GameMode } from '../types';
 
 // ── Player detail slide-over ─────────────────────────────────────────────────
 
@@ -28,7 +29,7 @@ const PlayerDetail: React.FC<{
       .finally(() => setLoading(false));
   }, [userId]);
 
-  const stats = user?.statistics_rulesets?.[mode] ?? user?.statistics;
+  const stats = user?.statistics_rulesets?.[mode as GameMode] ?? user?.statistics;
 
   const handleAction = async (action: () => Promise<void>) => {
     try {
@@ -103,7 +104,7 @@ const PlayerDetail: React.FC<{
             <div>
               <p className="text-xs text-gray-500 mb-2">Game mode</p>
               <div className="flex gap-1.5">
-                {(['osu', 'taiko', 'catch', 'mania'] as AdminGameMode[]).map(m => (
+                {(['osu', 'taiko', 'fruits', 'mania'] as AdminGameMode[]).map(m => (
                   <button
                     key={m}
                     onClick={() => setMode(m)}
@@ -146,12 +147,12 @@ const PlayerDetail: React.FC<{
               <div>
                 <p className="text-xs text-gray-500 mb-2">Grade counts</p>
                 <div className="flex gap-2">
-                  {Object.entries(stats.grade_counts).map(([grade, count]) => (
+                    {Object.entries(stats.grade_counts).map(([grade, count]) => (
                     <div key={grade} className="text-center">
-                      <p className="text-xs text-gray-400 uppercase font-mono">{grade}</p>
-                      <p className="text-sm font-semibold text-gray-100">{count}</p>
+                        <p className="text-xs text-gray-400 uppercase font-mono">{grade}</p>
+                        <p className="text-sm font-semibold text-gray-100">{count as number}</p>
                     </div>
-                  ))}
+                    ))}
                 </div>
               </div>
             )}
