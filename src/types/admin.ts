@@ -101,6 +101,8 @@ export interface AdminScore {
   total_score: number;
   created_at: string;
   flagged: boolean;
+  beatmap?: { version: string; difficulty_rating: number; };
+  beatmapset?: { artist: string; title: string; };
 }
 
 export interface AdminScoresResponse {
@@ -205,3 +207,5 @@ export interface AuditLogParams {
   action?: string;
   target?: string;
 }
+
+export type ResolveAction = 'warn' | 'silence' | 'restrict' | 'ban' | 'dismiss';

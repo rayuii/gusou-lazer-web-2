@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { adminAPI, type AdminUser, type AdminScore, type AuditLogEntry, type ServerStats, type AdminReport, type AdminBan, type AdminGameMode } from '../utils/adminAPI';
 import toast from 'react-hot-toast';
+import type { AdminUserStatus } from '../types/admin';
 
 // ── Server stats ────────────────────────────────────────────────────────────
 
@@ -35,19 +36,19 @@ export const useAdminUsers = () => {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [query, setQuery]   = useState('');
-  const [status, setStatus] = useState<string>('all');
+  const [status, setStatus] = useState<AdminUserStatus>('all');
   const [page, setPage]     = useState(1);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const load = useCallback(async (q: string, s: string, p: number) => {
+  const load = useCallback(async (q: string, s: AdminUserStatus, p: number) => {
     setLoading(true);
     try {
-      const res = await adminAPI.getUsers({
-        query:  q || undefined,
-        status: s !== 'all' ? (s as AdminUser['is_restricted'] extends true ? 'restricted' : never) : undefined,
-        page:   p,
-        limit:  50,
-      });
+        const res = await adminAPI.getUsers({
+            q:      q || undefined,  // was 'query'
+            status: s !== 'all' ? s as AdminUserStatus : undefined,
+            page:   p,
+            limit:  50,
+        });
       setUsers(res.users);
       setTotal(res.total);
     } catch {
@@ -105,8 +106,8 @@ export const useAdminScores = (type: 'top' | 'recent' | 'flagged' = 'top', mode:
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await adminAPI.getScores({ type, mode, limit: 50, offset });
-      setScores(data);
+        const data = await adminAPI.getScores({ type, mode, limit: 50, offset });
+        setScores(data.scores);
     } catch {
       toast.error('Failed to load scores');
     } finally {
@@ -199,7 +200,7 @@ export const useAuditLog = () => {
         action: actionFilter || undefined,
         target: targetFilter || undefined,
       });
-      setEntries(data);
+      setEntries(data.entries);
     } catch {
       toast.error('Failed to load audit log');
     } finally {

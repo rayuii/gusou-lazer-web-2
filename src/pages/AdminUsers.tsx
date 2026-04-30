@@ -161,20 +161,21 @@ const PlayerDetail: React.FC<{
               <div className="flex flex-wrap gap-2 mb-4">
                 <ActionBtn
                   size="sm"
-                  onClick={() => handleAction(() => adminAPI.resetUserPassword(user.id).then(r =>
-                    toast.success(`Temp password: ${r.temp_password}`, { duration: 15_000 }))
-                  )}
+                    onClick={() => handleAction(async () => {
+                    const r = await adminAPI.resetUserPassword(user.id);
+                    toast.success(`Temp password: ${r.temp_password}`, { duration: 15_000 });
+                    })}
                 >
                   Reset password
                 </ActionBtn>
-                <ActionBtn size="sm" onClick={() => handleAction(() => adminAPI.recalcUserPP(user.id, mode))}>
+                <ActionBtn size="sm" onClick={() => handleAction(async () => await adminAPI.recalcUserPP(user.id, mode))}>
                   Recalc PP
                 </ActionBtn>
                 {user.is_restricted ? (
                   <ActionBtn
                     size="sm"
                     variant="success"
-                    onClick={() => handleAction(() => adminAPI.unrestrictUser(user.id))}
+                    onClick={() => handleAction(async () => await adminAPI.unrestrictUser(user.id))}
                   >
                     Lift restriction
                   </ActionBtn>
@@ -184,7 +185,7 @@ const PlayerDetail: React.FC<{
                     variant="danger"
                     onClick={() => {
                       if (!punishReason) { toast.error('Enter a reason first'); return; }
-                      handleAction(() => adminAPI.restrictUser(user.id, punishReason));
+                      handleAction(async () => await adminAPI.restrictUser(user.id, punishReason));
                     }}
                   >
                     Restrict
@@ -195,7 +196,7 @@ const PlayerDetail: React.FC<{
                   variant="danger"
                   onClick={() => {
                     if (!punishReason) { toast.error('Enter a reason first'); return; }
-                    handleAction(() => adminAPI.wipeUserScores(user.id, mode));
+                    handleAction(async () => await adminAPI.wipeUserScores(user.id, mode));
                   }}
                 >
                   Wipe scores ({mode})
@@ -242,7 +243,7 @@ const PlayerDetail: React.FC<{
                     const action = (document.getElementById('punish-action') as HTMLSelectElement).value;
                     const duration = (document.getElementById('punish-duration') as HTMLInputElement).value;
                     if (!punishReason) { toast.error('Enter a reason first'); return; }
-                    handleAction(() => adminAPI.issuePunishment({
+                    handleAction(async () => await adminAPI.issuePunishment({
                       user_id: user.id,
                       action: action as Parameters<typeof adminAPI.issuePunishment>[0]['action'],
                       duration: duration || undefined,

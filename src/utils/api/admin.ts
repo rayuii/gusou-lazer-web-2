@@ -4,7 +4,6 @@ import { api } from './client'; // your existing axios instance
 import type {
   AdminBan,
   AdminReport,
-  AdminScore,
   AdminScoresParams,
   AdminScoresResponse,
   AdminUser,
