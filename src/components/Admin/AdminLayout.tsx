@@ -26,8 +26,9 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 const AdminLayout: React.FC = () => {
-  const { user } = useAuth();
-  console.log('AdminLayout user:', user);
+  const { user, isLoading } = useAuth();
+  
+  if (isLoading) return null; // or a spinner
   if (!user?.is_admin) return <Navigate to="/" replace />;
 
   return (
