@@ -136,5 +136,3 @@ export interface BestScore {
     pp: number;
   };
 }
-
-export type GameMode = 'osu' | 'taiko' | 'catch' | 'mania';

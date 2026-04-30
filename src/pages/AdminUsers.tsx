@@ -7,6 +7,7 @@ import {
 import { adminAPI, type AdminUser, type AdminGameMode } from '../utils/adminAPI';
 import { RiCloseLine, RiRefreshLine, RiShieldLine } from 'react-icons/ri';
 import toast from 'react-hot-toast';
+import type { AdminUserStatus } from '../types/admin';
 
 // ── Player detail slide-over ─────────────────────────────────────────────────
 
@@ -318,7 +319,7 @@ const AdminUsers: React.FC = () => {
         />
         <AdminSelect
           value={status}
-          onChange={setStatus}
+          onChange={v => setStatus(v as AdminUserStatus)}
           options={STATUS_OPTIONS}
         />
       </div>

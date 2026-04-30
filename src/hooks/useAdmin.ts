@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { adminAPI, type AdminUser, type AdminScore, type AuditLogEntry, type ServerStats, type AdminReport, type AdminBan, type AdminGameMode } from '../utils/adminAPI';
 import toast from 'react-hot-toast';
-import type { AdminUserStatus } from '../types/admin';
+import type { AdminUserStatus, ResolveAction } from '../types/admin';
 
 // ── Server stats ────────────────────────────────────────────────────────────
 
@@ -147,7 +147,7 @@ export const useAdminReports = () => {
   useEffect(() => { load(); }, [load]);
 
   const resolve = async (id: number, action: string) => {
-    await adminAPI.resolveReport(id, action);
+    await adminAPI.resolveReport(id, action as ResolveAction);
     toast.success('Report resolved');
     load();
   };

@@ -1,6 +1,6 @@
 // src/types/admin.ts
 
-import type { GameMode } from './scores';
+import type { GameMode } from './common';
 
 // ── Server stats ──────────────────────────────────────────────────────────────
 
@@ -207,5 +207,3 @@ export interface AuditLogParams {
   action?: string;
   target?: string;
 }
-
-export type ResolveAction = 'warn' | 'silence' | 'restrict' | 'ban' | 'dismiss';
