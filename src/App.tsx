@@ -23,6 +23,12 @@ import HowToJoinPage from './pages/HowToJoinPage';
 import BeatmapPage from './pages/BeatmapPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import ScorePage from './pages/ScorePage';
+import AdminLayout from './components/Admin/AdminLayout';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminUsers from './pages/AdminUsers';
+import AdminScores from './pages/AdminScores';
+import AdminModeration from './pages/AdminModeration';
+import { AdminAuditLog, AdminSettings } from './pages/AdminAuditLogAndSettings';
 
 function App() {
   const { t } = useTranslation();
@@ -70,6 +76,14 @@ function App() {
                 </div>
               }
             />
+          </Route>
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index        element={<AdminDashboard />} />
+            <Route path="users"     element={<AdminUsers />} />
+            <Route path="scores"    element={<AdminScores />} />
+            <Route path="mod"       element={<AdminModeration />} />
+            <Route path="audit-log" element={<AdminAuditLog />} />
+            <Route path="settings"  element={<AdminSettings />} />
           </Route>
             </Routes>
             </Router>
