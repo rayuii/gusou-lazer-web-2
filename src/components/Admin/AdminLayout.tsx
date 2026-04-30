@@ -27,9 +27,8 @@ const NAV_ITEMS: NavItem[] = [
 
 const AdminLayout: React.FC = () => {
   const { user } = useAuth();
-
+  console.log('AdminLayout user:', user);
   if (!user?.is_admin) return <Navigate to="/" replace />;
-  console.log(user);
 
   return (
     <div className="flex h-screen bg-gray-950 text-gray-100 overflow-hidden">
