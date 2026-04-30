@@ -57,7 +57,7 @@ const MessagesPage: React.FC = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [showSidebar, setShowSidebar] = useState(true);
   const [showNewPMModal, setShowNewPMModal] = useState(false);
-  
+  const onNewMessageRef = useRef<(message: ChatMessage) => void>();
   // 优化的频道消息加载函数，使用缓存API
   const loadChannelMessages = useCallback(async (channelId: number): Promise<ChatMessage[] | null> => {
     try {
@@ -156,7 +156,6 @@ const MessagesPage: React.FC = () => {
 
   // 使用WebSocket处理实时消息
   // chatConnected 当前未在 UI 中使用，改名为 _chatConnected 以消除未使用警告
-  const onNewMessageRef = useRef<(message: ChatMessage) => void>();
   const { isConnected: _chatConnected } = useWebSocketNotifications({
     isAuthenticated,
     currentUser: user,
@@ -631,30 +630,21 @@ const MessagesPage: React.FC = () => {
       throttledMarkAsRead(message.channel_id, message.message_id);
     }, 0);
   }, []);
-  // Wire up the WebSocket handler now that all functions are defined
   useEffect(() => {
-    onNewMessageRef.current = (message) => {
+  onNewMessageRef.current = (message) => {
       if (user?.id !== undefined && message.sender_id === user.id) return;
-
       const currentSelectedChannel = selectedChannelRef.current;
-      const shouldAddToCurrentChannel =
-        currentSelectedChannel && message.channel_id === currentSelectedChannel.channel_id;
-
-      if (shouldAddToCurrentChannel) {
+      if (currentSelectedChannel && message.channel_id === currentSelectedChannel.channel_id) {
         addMessageToList(message, 'websocket');
       } else {
-        const targetChannel = channelsRef.current.find(
-          (ch) => ch.channel_id === message.channel_id
-        );
+        const targetChannel = channelsRef.current.find(ch => ch.channel_id === message.channel_id);
         if (targetChannel) {
           selectChannelAndAddMessage(targetChannel, message);
         } else if (channelsRef.current.length === 0) {
-          chatAPI.getChannels().then((channelsData) => {
+          chatAPI.getChannels().then(channelsData => {
             if (channelsData) {
               setChannels(channelsData);
-              const retryChannel = channelsData.find(
-                (ch: ChatChannel) => ch.channel_id === message.channel_id
-              );
+              const retryChannel = channelsData.find((ch: ChatChannel) => ch.channel_id === message.channel_id);
               if (retryChannel) selectChannelAndAddMessage(retryChannel, message);
             }
           }).catch(console.error);
@@ -662,7 +652,6 @@ const MessagesPage: React.FC = () => {
       }
     };
   }, [user?.id, addMessageToList]);
-
   // 发送消息
   const sendMessage = async (messageText: string) => {
     if (!selectedChannel || !messageText.trim()) return;
@@ -2051,11 +2040,7 @@ const MessagesPage: React.FC = () => {
             </div>
 
             {/* 消息列表 */}
-            <div
-              id="chat-message-scroll-container"
-              ref={scrollContainerRef}
-              className="flex-1 overflow-y-auto p-4 min-h-0"
-            >
+            <div id="chat-message-scroll-container" ref={scrollContainerRef} className="flex-1 overflow-y-auto p-4 min-h-0">
               {messages.map((message, index) => {
                 const prevMessage = messages[index - 1];
                 
