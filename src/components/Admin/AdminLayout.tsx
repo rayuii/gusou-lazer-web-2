@@ -29,6 +29,7 @@ const AdminLayout: React.FC = () => {
   const { user } = useAuth();
 
   if (!user?.is_admin) return <Navigate to="/" replace />;
+  console.log(user);
 
   return (
     <div className="flex h-screen bg-gray-950 text-gray-100 overflow-hidden">
