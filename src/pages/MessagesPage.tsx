@@ -57,7 +57,7 @@ const MessagesPage: React.FC = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [showSidebar, setShowSidebar] = useState(true);
   const [showNewPMModal, setShowNewPMModal] = useState(false);
-  const onNewMessageRef = useRef<(message: ChatMessage) => void>();
+  const onNewMessageRef = useRef<((message: ChatMessage) => void) | undefined>(undefined);
   // 优化的频道消息加载函数，使用缓存API
   const loadChannelMessages = useCallback(async (channelId: number): Promise<ChatMessage[] | null> => {
     try {
