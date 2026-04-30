@@ -58,6 +58,7 @@ const MessagesPage: React.FC = () => {
   const [showSidebar, setShowSidebar] = useState(true);
   const [showNewPMModal, setShowNewPMModal] = useState(false);
   const onNewMessageRef = useRef<((message: ChatMessage) => void) | undefined>(undefined);
+  const channelRefreshTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   // 优化的频道消息加载函数，使用缓存API
   const loadChannelMessages = useCallback(async (channelId: number): Promise<ChatMessage[] | null> => {
     try {
@@ -286,6 +287,13 @@ const MessagesPage: React.FC = () => {
       if (fallbackTimers) {
         fallbackTimers.forEach((timer: NodeJS.Timeout) => clearTimeout(timer));
         fallbackTimers.clear();
+      }
+    };
+  }, []);
+  useEffect(() => {
+    return () => {
+      if (channelRefreshTimeoutRef.current) {
+        clearTimeout(channelRefreshTimeoutRef.current);
       }
     };
   }, []);
@@ -990,30 +998,35 @@ const MessagesPage: React.FC = () => {
     const sourceUserId = notification.source_user_id;
     if (!sourceUserId) return;
 
-    // Check if channel already exists
-    const existingChannel = channelsRef.current.find(ch => 
-      ch.type === 'PM' && 
-      ch.users.includes(user?.id || 0) && 
+    // Check against ref (not state) to avoid stale closure
+    const existingChannel = channelsRef.current.find(ch =>
+      ch.type === 'PM' &&
+      ch.users.includes(user?.id || 0) &&
       ch.users.includes(sourceUserId)
     );
 
     if (existingChannel) return;
 
-    // Just refresh from API instead of creating a fake channel object
-    try {
-      const rawChannels = await chatAPI.getChannels();
-      const enriched = await enrichChannelsWithUserInfo(rawChannels);
-      const sorted = enriched.sort((a: ChatChannel, b: ChatChannel) => {
-        const typeOrder: Record<string, number> = { 'PUBLIC': 0, 'PM': 1, 'TEAM': 2, 'PRIVATE': 3 };
-        const aOrder = typeOrder[a.type] || 4;
-        const bOrder = typeOrder[b.type] || 4;
-        if (aOrder !== bOrder) return bOrder - aOrder;
-        return b.name.localeCompare(a.name);
-      });
-      setChannels(sorted);
-    } catch (e) {
-      console.error('Failed to refresh channels on PM notification:', e);
-    }
+    // Debounce: only refresh once even if multiple notifications fire
+    if (channelRefreshTimeoutRef.current) return;
+
+    channelRefreshTimeoutRef.current = setTimeout(async () => {
+      channelRefreshTimeoutRef.current = null;
+      try {
+        const rawChannels = await chatAPI.getChannels();
+        const enriched = await enrichChannelsWithUserInfo(rawChannels);
+        const sorted = enriched.sort((a: ChatChannel, b: ChatChannel) => {
+          const typeOrder: Record<string, number> = { 'PUBLIC': 0, 'PM': 1, 'TEAM': 2, 'PRIVATE': 3 };
+          const aOrder = typeOrder[a.type] || 4;
+          const bOrder = typeOrder[b.type] || 4;
+          if (aOrder !== bOrder) return bOrder - aOrder;
+          return b.name.localeCompare(a.name);
+        });
+        setChannels(sorted);
+      } catch (e) {
+        console.error('Failed to refresh channels on PM notification:', e);
+      }
+    }, 2000); // wait 2s for notification burst to settle
   };
 
   // 自动标记私聊消息为已读
