@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-import { useAdminStats, useAuditLog } from '../../hooks/useAdmin';
-import { StatCard, PageHeader, SectionCard } from '../../components/Admin/AdminUI';
+import { useAdminStats, useAuditLog } from '../hooks/useAdmin';
+import { StatCard, PageHeader, SectionCard } from '../components/Admin/AdminUI';
 import { RiRefreshLine } from 'react-icons/ri';
 import { formatDistanceToNow } from 'date-fns';
 

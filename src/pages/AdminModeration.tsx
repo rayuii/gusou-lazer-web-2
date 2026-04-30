@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { useAdminReports, useAdminBans } from '../../hooks/useAdmin';
-import { adminAPI, type PunishmentPayload } from '../../utils/adminAPI';
+import { useAdminReports, useAdminBans } from '../hooks/useAdmin';
+import { adminAPI, type PunishmentPayload } from '../utils/adminAPI';
 import {
   AdminTable, SeverityBadge, ActionBtn, PageHeader, SectionCard,
-} from '../../components/Admin/AdminUI';
+} from '../components/Admin/AdminUI';
 import toast from 'react-hot-toast';
 import { RiShieldLine } from 'react-icons/ri';
 

@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { useAdminScores } from '../../hooks/useAdmin';
+import { useAdminScores } from '../hooks/useAdmin';
 import {
   AdminTable, AdminSelect, PageHeader, ActionBtn,
-} from '../../components/Admin/AdminUI';
-import { type AdminGameMode } from '../../utils/adminAPI';
+} from '../components/Admin/AdminUI';
+import { type AdminGameMode } from '../utils/adminAPI';
 import toast from 'react-hot-toast';
 
 type ScoreType = 'top' | 'recent' | 'flagged';

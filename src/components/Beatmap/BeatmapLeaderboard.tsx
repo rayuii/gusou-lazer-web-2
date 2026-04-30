@@ -68,7 +68,7 @@ export interface BeatmapScoresResponse {
   score_count: number;
 }
 
-export type LeaderboardType = 'global' | 'country' | 'friends';
+export type LeaderboardType = 'global' | 'country' | 'friend' | 'team';
 export type GameMode = 'osu' | 'taiko' | 'fruits' | 'mania';
 
 // ─── API ──────────────────────────────────────────────────────────────────────
