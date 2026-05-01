@@ -562,10 +562,10 @@ export const useWebSocketNotifications = ({
       if (endpoint.startsWith('ws://') || endpoint.startsWith('wss://')) {
         wsUrl = `${endpoint}?access_token=${encodeURIComponent(token)}`;
       } else {
-        // Use the API base URL, not the frontend host
-        const apiBase = import.meta.env.VITE_API_BASE_URL || `${window.location.protocol}//${window.location.host}`;
-        const baseWs = apiBase.replace('https://', 'wss://').replace('http://', 'ws://');
-        wsUrl = `${baseWs.replace(/\/$/, '')}${endpoint}?access_token=${encodeURIComponent(token)}`;
+        // 如果是相对路径，构建完整的WebSocket URL
+        const baseUrl = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+        const host = window.location.host;
+        wsUrl = `${baseUrl}${host}${endpoint}?access_token=${encodeURIComponent(token)}`;
       }
   const ws = new WebSocket(wsUrl);
   globalWsRef = ws;

@@ -668,92 +668,29 @@ const MessagesPage: React.FC = () => {
     }
   };
 
-  // 优化的防抖标记已读函数，减少重复请求
+  // Outside the component, module-level
+  const _markAsReadCache = new Map<number, number>(); // channelId -> lastMessageId
+  // Then simplify throttledMarkAsRead inside the component:
   const throttledMarkAsRead = useCallback(
     (() => {
       let timeoutId: NodeJS.Timeout | null = null;
-      const pendingRequests = new Set<string>();
-      const lastReadCache = new Map<number, number>(); // 缓存每个频道的最后已读消息ID
-      const batchQueue = new Map<number, number>(); // 批量处理队列：channelId -> messageId
-      
-      const processBatch = async () => {
-        if (batchQueue.size === 0) return;
-        
-        const currentBatch = new Map(batchQueue);
-        batchQueue.clear();
-        
-        // 并行处理多个频道的markAsRead请求
-        const promises = Array.from(currentBatch.entries()).map(async ([channelId, messageId]) => {
-          const requestKey = `${channelId}-${messageId}`;
-          
-          // 检查是否已经标记了更高的消息ID
-          const cachedLastRead = lastReadCache.get(channelId) || 0;
-          if (messageId <= cachedLastRead) {
-            console.log(`消息${messageId}已被更高ID${cachedLastRead}标记，跳过`);
-            return;
-          }
-          
-          if (pendingRequests.has(requestKey)) {
-            console.log(`请求已在进行中，跳过: ${requestKey}`);
-            return;
-          }
-          
-          try {
-            pendingRequests.add(requestKey);
-            console.log(`批量标记已读: 频道${channelId}, 消息${messageId}`);
-            
-            await chatAPI.markAsRead(channelId, messageId);
-            
-            // 更新缓存
-            lastReadCache.set(channelId, Math.max(cachedLastRead, messageId));
-            
-            console.log(`标记已读成功: 频道${channelId}, 消息${messageId}`);
-            
-            // 更新频道列表中的已读状态
-            updateChannelReadStatus(channelId, messageId);
-            
-            // 删除相关通知（批量操作）
-            try {
-              await removeNotificationByObject(channelId.toString(), 'channel');
-            } catch (error) {
-              console.error(`删除通知失败: 频道${channelId}`, error);
-            }
-            
-          } catch (error) {
-            console.error(`标记已读失败: 频道${channelId}, 消息${messageId}`, error);
-          } finally {
-            pendingRequests.delete(requestKey);
-          }
-        });
-        
-        await Promise.allSettled(promises);
-      };
       
       return async (channelId: number, messageId: number) => {
-        // 检查是否已经有更高的消息ID在队列中
-        const queuedMessageId = batchQueue.get(channelId);
-        if (queuedMessageId && messageId <= queuedMessageId) {
-          console.log(`消息${messageId}低于队列中的${queuedMessageId}，跳过`);
-          return;
-        }
+        const cached = _markAsReadCache.get(channelId) || 0;
+        if (messageId <= cached) return; // already marked
         
-        // 检查缓存，避免重复标记
-        const cachedLastRead = lastReadCache.get(channelId) || 0;
-        if (messageId <= cachedLastRead) {
-          console.log(`消息${messageId}已被标记为已读(缓存${cachedLastRead})，跳过`);
-          return;
-        }
+        _markAsReadCache.set(channelId, messageId);
         
-        // 添加到批量队列
-        batchQueue.set(channelId, Math.max(queuedMessageId || 0, messageId));
-        
-        // 清除之前的定时器
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-        }
-        
-        // 设置新的定时器，延长防抖时间以减少请求频率
-        timeoutId = setTimeout(processBatch, 1500); // 增加到1.5秒防抖
+        if (timeoutId) clearTimeout(timeoutId);
+        timeoutId = setTimeout(async () => {
+          try {
+            await chatAPI.markAsRead(channelId, messageId);
+            updateChannelReadStatus(channelId, messageId);
+            await removeNotificationByObject(channelId.toString(), 'channel');
+          } catch (e) {
+            console.error(e);
+          }
+        }, 1500);
       };
     })(),
     [updateChannelReadStatus, removeNotificationByObject]
